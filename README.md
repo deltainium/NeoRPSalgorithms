@@ -1,6 +1,6 @@
 # Rock Paper Scissors algorithms!
 
-!! THIS PROGRAM HAS DEPENDENCIES  
+!! THIS PROGRAM HAS DEPENDENCIES !!  
 tkinter  
 pillow
 
