@@ -49,7 +49,7 @@ HumanBot_ButtonFrame = Frame(P1InputFrame)
 ImagePath = os.path.dirname(__file__)   #finds file location and saves it as path
 ImagePath = ImagePath.replace("\\","/")
 
-Imagesize = 400                         #Image size, i think its pixel length, the image is a square, so all sides are equal length.
+Imagesize = 400     #Image size, i think its pixel length, the image is a square, so all sides are equal length.
 
 #Image shenanigans
 img = Image.open(ImagePath+"/Images/paper.jpg")
@@ -80,7 +80,7 @@ Image2Canvas = Canvas(P2Frame,width=Imagesize,height=Imagesize)
 
 #endregion
 
-BotList = [             #Add list of bots here.
+BotList = [     #Add list of bots here.
     "RandomBot",
     "HumanBot",
     "RockBot",
@@ -92,15 +92,23 @@ BotList = [             #Add list of bots here.
     "CounterBot",
     "RageBot",
     "EvaluationBot"
+
+    #TesterBot, this bot works like EvaluationBot, 
+    # but before he uses the first rounds to test every of his strategies 'n' amount of times, 
+    # and once its done it keeps playing like before. The advantage to this is that the bot will 
+    # more easily find the best strategy, but the downside is that the bot will use theirs first 
+    # rounds to test.
 ]
 
-def Introspection(BotName):    #You must know yourself to know your enemy. Figures out who the bot is and returns who his opponent is (Why his opponent? Because thats what we actually want to know).
-
+def Introspection(BotName):
+    #You must know yourself to know your enemy. Figures out who the bot 
+    #is and returns what player (number) his opponent is 
+    #(Why his opponent? Because thats what we actually want to know)
     global P1Bot
     global P2Bot
     global Duo
 
-    if Duo == True:              #Duo checks if both players are the same, if they are the same it will return 0 and turn a boolean true so that when the next bot does introspection, they will be returned 1 instantly
+    if Duo == True:     #Duo checks if both players are the same, if they are the same it will return 0 and turn a boolean true so that when the next bot does introspection, they will be returned 1 instantly
         return 1
 
     if P1Bot == P2Bot:
@@ -115,7 +123,8 @@ def Introspection(BotName):    #You must know yourself to know your enemy. Figur
         print("P1: "+P1Value.get()," | P2: "+P2Value.get()," | BotName: "+BotName)  #Debugging, incase någe går kalt med introspection, så hjelpe det å vita dette.
 
 #region | Player (bot) Algorithms
-def RandomBot():                                    #Chooses a pseudo random move
+def RandomBot():
+    #Chooses a pseudo random move
     match random.randint(0,2): 
         case 0:
             return Move.Rock
@@ -126,7 +135,10 @@ def RandomBot():                                    #Chooses a pseudo random mov
 
 PlayerMove = None
 PlayerHasMoved = False
-def HumanBot_RockMove():                            #For human bot, same with the 2 other functions under, these are for the buttons that display when playing humanbot
+def HumanBot_RockMove():
+    #For human bot, same with the 2 other functions under, 
+    # these are for the buttons that display when playing 
+    # humanbot
     global PlayerHasMoved
     global PlayerMove
     PlayerHasMoved = True
@@ -148,25 +160,27 @@ def HumanBot_ScissorsMove():
     MatchMaker()
 
 NextHumanBotMove = None
-def HumanBot():                                     #Lets a human play (haha HumanBot???+ humans arent bot??+!!1)
+def HumanBot():
+    #Lets a human play (haha HumanBot???+ humans arent bot??+!!1)
     return PlayerMove
 
-def RockBot():                                      #Will always play rock
+def RockBot():      #Will always play rock
     return Move.Rock
 
-def PaperBot():                                     #Will always play paper
+def PaperBot():     #Will always play paper
     return Move.Paper
 
-def ScissorsBot():                                  #Will always play scissors
+def ScissorsBot():  #Will always play scissors
     return Move.Scissors
 
-def CopyBot(RoundLog,Enemy):                    #Bugged when playing against itself, will play the enemies last move.
+def CopyBot(RoundLog,Enemy):    #will play the enemies last move.
     if Enemy is None:
         Enemy = Introspection("CopyBot")
 
     return RoundLog[len(RoundLog)-1][Enemy]
 
-def BeatLastBot(RoundLog,Enemy):                 #Will Play the winning move against the enemies last move.
+def BeatLastBot(RoundLog,Enemy):
+    #Will Play the winning move against the enemies last move.
 
     if Enemy is None:
         Enemy = Introspection("BeatLastBot")
@@ -181,8 +195,8 @@ def BeatLastBot(RoundLog,Enemy):                 #Will Play the winning move aga
         case Move.Scissors:
             return Move.Rock
 
-def GenerousBot(RoundLog,Enemy):                #Will play the losing move against the enemies last move.
-
+def GenerousBot(RoundLog,Enemy):
+    #Will play the losing move against the enemies last move.
     if Enemy is None:
         Enemy = Introspection("GenerousBot")
 
@@ -198,7 +212,10 @@ def GenerousBot(RoundLog,Enemy):                #Will play the losing move again
 
 RageBot_Friendly = True
 Rage = 0
-def RageBot(RoundLog,Enemy):                    #Will play generousbot, but if the bot loses 5 times in a row, it will enter a rage mode and play BeatLastBot for the rest of the game
+def RageBot(RoundLog,Enemy):
+    #Will play generousbot, but if the bot loses 5 times in a row, 
+    #it will enter a rage mode and play BeatLastBot for the 
+    #rest of the game
     global RageBot_Friendly
     global Rage
 
@@ -226,7 +243,8 @@ def RageBot(RoundLog,Enemy):                    #Will play generousbot, but if t
         return BeatLastBot(RoundLog,Enemy)
 
 LastMoves = []
-def CounterBot(RoundLog,Enemy):                 #Will play the move that wins against the enemies recently most common moves.
+def CounterBot(RoundLog,Enemy):
+    #Will play the move that wins against the enemies recently most common moves.
     global LastMoves
     if Enemy is None:
         Enemy = Introspection("CounterBot")
@@ -265,7 +283,10 @@ def ImpossibleBot():
 PreviousStrat = "RandomBot"
 strats = {"RandomBot": -5, "CopyBot": 0, "BeatLastBot": 0, "GenerousBot": 0, "CounterBot": 0,}
 
-def EvaluationBot(RoundLog,Enemy):   #Has a multitude of different bots it can choose from, and picks the one that it believes has the highest odds of winning based off a scoring system
+def EvaluationBot(RoundLog,Enemy):
+    #Has a multitude of different bots it can choose from, 
+    #and picks the one that it believes has the highest odds 
+    # of winning based off a scoring system
     global PreviousStrat
     global strats
     global BotInfo
@@ -282,14 +303,14 @@ def EvaluationBot(RoundLog,Enemy):   #Has a multitude of different bots it can c
         Enemy_outcome = Outcomes.Tie
 
     if RoundLog[len(RoundLog)-1][2] == Outcomes.Tie:            #Tie, here the penalty for getting tied is given
-        strats[PreviousStrat] = strats[PreviousStrat] - 7.5 
+        strats[PreviousStrat] = strats[PreviousStrat] * 0.5 - 7.5 
     elif RoundLog[len(RoundLog)-1][2] == Enemy_outcome:         #Win, here the reward for winning is given
         strats[PreviousStrat] = strats[PreviousStrat] + 20  
     else:                                                       #Lose, here the penatly for losing is given
-        strats[PreviousStrat] = strats[PreviousStrat] * round((random.randint(0,11) / 100),3) - 12.5
+        strats[PreviousStrat] = strats[PreviousStrat] * (random.randint(0,11) / 100) - 12.5
 
     if BotInfo == True and P2Value.get() == "EvaluationBot":
-        Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem\n\n"+PreviousStrat)
+        Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem\n\n"+PreviousStrat+"\n\n"+str(strats).replace(",","\n").replace("'",""))
 
     LastMoves.append(RoundLog[len(RoundLog)-1][Enemy])
     if len(LastMoves) > 5:
@@ -324,7 +345,11 @@ TieScoreValue = 0
 
 IsAutoFighting = False
 
-def CheckWinner(P1,P2,PlayerLog):     #P1 is player 1's move, P2 is player 2's move. This function checks the winner and is pretty much the main function, here all the information that is crucial to the Bots is made and this function is the one that calls most of the other functions.
+def CheckWinner(P1,P2,PlayerLog):     
+    #P1 is player 1's move, P2 is player 2's move. This function checks 
+    #the winner and is pretty much the main function, here all the
+    #information that is crucial to the Bots is made and this function
+    #is the one that calls most of the other functions.
     global P1ScoreValue
     global P2ScoreValue
     global TieScoreValue
@@ -342,33 +367,40 @@ def CheckWinner(P1,P2,PlayerLog):     #P1 is player 1's move, P2 is player 2's m
     if IsAutoFighting == False:
         ImageHandler(P1,P2)
 
-    #Checks for tie, this is done first because it is cheap to check and if the result is a tie then we wont need to check any win conditions, saving us some computer processesing 
+    #Checks for tie, this is done first because it is cheap to check and if 
+    #the result is a tie then we wont need to check any win conditions, 
+    #saving us some computer processesing 
     if P1 == P2:
         WinnerLabel.config(text="It was a tie!")
         TieScoreValue += 1
         TieScore.config(text=("Ties: "+str(TieScoreValue)))
         return(P1,P2,Outcomes.Tie)
 
-    #All Player 2 win conditions, if none of them are met, player 1 wins. look into optimizations here, maybe some super smart logic?
+    #All Player 2 win conditions, if none of them are met, player 1 wins.
+    #look into optimizations here, maybe some super smart logic?
     elif P1 == Move.Rock and P2 == Move.Paper or P1 == Move.Paper and P2 == Move.Scissors or P1 == Move.Scissors and P2 == Move.Rock:
         WinnerLabel.config(text="Player 2 wins!")
         P2ScoreValue += 1
         P2Score.config(text=("Wins: "+str(P2ScoreValue)))
         return(P1,P2,Outcomes.P2)
 
+    #If the game is not tied, and player 2 does not win, 
+    #then the only outcome is that P1 wins, therefor we dont
+    #need to check anymore moves
     else:
         WinnerLabel.config(text="Player 1 wins!")
         P1ScoreValue += 1
         P1Score.config(text=("Wins: "+str(P1ScoreValue)))
-        return(P1,P2,Outcomes.P1) #If the game is not tied, and player 2 does not win, then the only outcome is that P1 wins, therefor we dont need to check anymore moves
+        return(P1,P2,Outcomes.P1)
 
 
-def MatchMaker():           #Matchmakes <3, first identifies the option chosen on the lists, then has them fight and logs the players and round 
+def MatchMaker():           
+    #Matchmakes <3, first identifies the option chosen on the lists, 
+    #then has them fight and logs the players and round 
     Enemy = None
     global P1Bot
     global P2Bot
     global Duo
-
 
     #Makes the bot chosen on the list of bots into the player for player 1
     match P1Value.get():
@@ -600,7 +632,9 @@ def Player1ListUpdate(Player):
 
 BotInfo = False
 
-def Player2ListUpdate(Player):      #If the easteregg is activated, descriptions of what the bots do will be displayed when a bot is selected.
+def Player2ListUpdate(Player):      
+    #If the easteregg is activated, descriptions of what 
+    #the bots do will be displayed when a bot is selected.
     global BotInfo
     global PreviousStrat
     Player2BotLabel.config(text="")
@@ -647,7 +681,9 @@ def Player2ListUpdate(Player):      #If the easteregg is activated, descriptions
     ResetLogs()
 
 
-def RerollTrademark():              #Is for easteregg, clicking the Trademark (the funny text in the right corner) will reroll the text
+def RerollTrademark():
+    #Is for easteregg, clicking the Trademark 
+    #(the funny text in the right corner) will reroll the text
     global BotInfo
     BotInfo = True
     Player2ListUpdate(P2Value.get())
