@@ -7,7 +7,6 @@ import enum, random, os, os.path
 from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry
 from PIL import Image, ImageTk
 
-
 class Move(enum.Enum):
     Rock = 1
     Paper = 2
@@ -18,12 +17,11 @@ class Outcomes(enum.Enum):
     P2 = 2
     Tie = 3
 
-
 #region Tkinter interface shenanigans
 root = Tk()
 root.title("Rock Paper Scissors Algorithms")
 
-funnytexts = ["I live in your walls","bitcoin miner","Get mad!","Lykke te 😈","<3","动态网自由门 天安門 天安门","The cake is a lie","Kanye East ©","https://tiny.cc/allahisbig","flyplassen wiki under construction","0 days without sarcasm","click me!","they are coming"]
+funnytexts = ["I live in your walls","bitcoin miner","Get mad!","Lykke te 😈","<3","动态网自由门 天安門 天安门","The cake is a lie","Kanye East ©","https://tiny.cc/allahisbig","flyplassen wiki under construction","0 days without sarcasm","click me!","they are coming","promise that you will sing about me","'Desperate measures' på spotify"]
 
 P1Frame = Frame(root)
 P1InputFrame = Frame(P1Frame)
@@ -51,15 +49,17 @@ HumanBot_ButtonFrame = Frame(P1InputFrame)
 ImagePath = os.path.dirname(__file__)   #finds file location and saves it as path
 ImagePath = ImagePath.replace("\\","/")
 
+Imagesize = 400                         #Image size, i think its pixel length, the image is a square, so all sides are equal length.
+
 #Image shenanigans
 img = Image.open(ImagePath+"/Images/paper.jpg")
-img = img.resize((300,300))
+img = img.resize((Imagesize,Imagesize))
 PaperImage = ImageTk.PhotoImage(img)
 img = img.resize((50,50))
 Button_PaperImage = ImageTk.PhotoImage(img)
 
 img = Image.open(ImagePath+"/Images/scissors.jpg")
-img = img.resize((300,300))
+img = img.resize((Imagesize,Imagesize))
 ScissorsImage = ImageTk.PhotoImage(img)
 img = img.resize((50,50))
 Button_ScissorsImage = ImageTk.PhotoImage(img)
@@ -69,14 +69,14 @@ if random.randint(1,101) <= 5:  #Nothing to see here *hum hum*
     img = Image.open(ImagePath+"/Images/THErock.jpg")
 else:
     img = Image.open(ImagePath+"/Images/rock.jpg")
-img = img.resize((300,300))
+img = img.resize((Imagesize,Imagesize))
 RockImage = ImageTk.PhotoImage(img)
 img = img.resize((50,50))
 Button_RockImage = ImageTk.PhotoImage(img)
 
-Image1Canvas = Canvas(P1Frame,width=300, height=300)
+Image1Canvas = Canvas(P1Frame,width=Imagesize, height=Imagesize)
 
-Image2Canvas = Canvas(P2Frame,width=300,height=300)
+Image2Canvas = Canvas(P2Frame,width=Imagesize,height=Imagesize)
 
 #endregion
 
@@ -91,6 +91,7 @@ BotList = [             #Add list of bots here.
     "GenerousBot",
     "CounterBot",
     "RageBot",
+    "FinalBossBot"
 ]
 
 def Introspection(BotName):    #You must know yourself to know your enemy. Figures out who the bot is and returns who his opponent is (Why his opponent? Because thats what we actually want to know).
@@ -225,18 +226,13 @@ def RageBot(RoundLog,Enemy):                    #Will play generousbot, but if t
         return BeatLastBot(RoundLog,Enemy)
 
 LastMoves = []
-def CounterBot(RoundLog,PlayerLog):                 #Will play the move that wins against the enemies recently most common moves.
+def CounterBot(RoundLog,Enemy):                 #Will play the move that wins against the enemies recently most common moves.
     global LastMoves
-
-    MemoryCapacity = 5                              #This determines how good the bots memory is, the number corresponds with how many rounds the bot is able to remember
-
-    if PlayerLog[len(RoundLog)-1][0] == "CounterBot":
-        Enemy = 1
-    else:
-        Enemy = 0
+    if Enemy is None:
+        Enemy = Introspection("CounterBot")
 
     LastMoves.append(RoundLog[len(RoundLog)-1][Enemy])
-    if len(LastMoves) > MemoryCapacity:
+    if len(LastMoves) > 5:
         LastMoves.pop(0)
 
     RockMoves_CountBot = LastMoves.count(Move.Rock)
@@ -264,6 +260,58 @@ def ImpossibleBot():
             return Move.Scissors
         case Move.Scissors:
             return Move.Rock
+
+PreviousStrat = "RandomBot"
+strats = {"RandomBot": -5, "CopyBot": 0, "BeatLastBot": 0, "GenerousBot": 0, "CounterBot": 0,}
+
+def FinalBossBot(RoundLog,Enemy):   #Has a multitude of different bots it can choose from, and picks the one that it believes has the highest odds of winning based off a scoring system
+    global PreviousStrat
+    global strats
+    global BotInfo
+
+    if Enemy is None:
+        Enemy = Introspection("FinalBossBot")
+
+    if Enemy == 0:
+        Enemy_outcome = Outcomes.P2
+    elif Enemy == 1:
+        Enemy_outcome = Outcomes.P1
+    else:
+        Enemy_outcome = Outcomes.Tie
+
+    if RoundLog[len(RoundLog)-1][2] == Outcomes.Tie:            #Tie
+        strats[PreviousStrat] = strats[PreviousStrat] - 5 
+    elif RoundLog[len(RoundLog)-1][2] == Enemy_outcome:         #Win
+        strats[PreviousStrat] = strats[PreviousStrat] + 20  
+    else:                                                       #Lose
+        strats[PreviousStrat] = strats[PreviousStrat] * round((random.randint(0,11) / 100),3) - 10
+
+    if BotInfo == True:
+        Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem\n\n"+PreviousStrat)
+
+    PreviousStrat = max(strats, key=strats.get)
+    print(strats)
+    match PreviousStrat:
+        case "RandomBot":
+            print("Random")
+            return RandomBot()
+
+        case "CopyBot":
+            print("Copy")
+            return CopyBot(RoundLog,Enemy)
+
+        case "BeatLastBot":
+            print("BeatLast")
+            return BeatLastBot(RoundLog,Enemy)
+
+        case "GenerousBot":
+            print("Generous")
+            return GenerousBot(RoundLog,Enemy)
+
+        case "CounterBot":
+            print("Counter")
+            return CounterBot(RoundLog,Enemy)
+
 
 #endregion
 
@@ -378,13 +426,21 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
             else:
                 P1 = RageBot(RoundLog,Enemy)
             P1Bot = "RageBot"
+
+        case "FinalBossBot":
+            if len(RoundLog) == 0:
+                P1 = RandomBot()
+            else:
+                P1 = FinalBossBot(RoundLog,Enemy)
+            P1Bot = "FinalBossBot"
+
         
     #Makes the bot chosen on the list of bots into the player for player 2
     match P2Value.get():
         case "RandomBot":
             P2Bot = "RandomBot"
             P2 = RandomBot()
-        
+
         case "RockBot":
             P2Bot = "RockBot"
             P2 = RockBot()
@@ -436,6 +492,13 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
                 P2 = RageBot(RoundLog,Enemy)
             P2Bot = "RageBot"
 
+        case "FinalBossBot":
+            if len(RoundLog) == 0:
+                P2 = RandomBot()
+            else:
+                P2 = FinalBossBot(RoundLog,Enemy)
+            P2Bot = "FinalBossBot"
+
     if AutoFight.get() == 1:
         AutoFight.set(0)
         global IsAutoFighting
@@ -472,6 +535,10 @@ def ResetLogs():    #Resets logs (wow who wouldve thought)
     global RageBot_Friendly
     global Rage
 
+    global strats
+
+    strats = {"RandomBot": -5, "CopyBot": 0, "BeatLastBot": 0, "GenerousBot": 0, "CounterBot": 0,}
+
     RockMoves_CountBot = 0
     PaperMoves_CountBot = 0
     ScissorsMoves_CountBot = 0
@@ -490,23 +557,23 @@ def ResetLogs():    #Resets logs (wow who wouldve thought)
 def ImageHandler(P1Move,P2Move):    #Handles what images to use depending on the player moves
     match P1Move:
         case Move.Rock:
-            Image1Canvas.create_image(150,150,image=RockImage)
+            Image1Canvas.create_image(Imagesize/2,Imagesize/2,image=RockImage)
 
         case Move.Paper:
-            Image1Canvas.create_image(150,150,image=PaperImage)
+            Image1Canvas.create_image(Imagesize/2,Imagesize/2,image=PaperImage)
 
         case Move.Scissors:
-            Image1Canvas.create_image(150,150,image=ScissorsImage)
+            Image1Canvas.create_image(Imagesize/2,Imagesize/2,image=ScissorsImage)
 
     match P2Move:
         case Move.Rock:
-            Image2Canvas.create_image(150,150,image=RockImage)
+            Image2Canvas.create_image(Imagesize/2,Imagesize/2,image=RockImage)
 
         case Move.Paper:
-            Image2Canvas.create_image(150,150,image=PaperImage)
+            Image2Canvas.create_image(Imagesize/2,Imagesize/2,image=PaperImage)
 
         case Move.Scissors:
-            Image2Canvas.create_image(150,150,image=ScissorsImage)
+            Image2Canvas.create_image(Imagesize/2,Imagesize/2,image=ScissorsImage)
             
 
 def Player1ListUpdate(Player):
@@ -532,12 +599,15 @@ def Player1ListUpdate(Player):
     ResetLogs()
 
 BotInfo = False
+
 def Player2ListUpdate(Player):      #If the easteregg is activated, descriptions of what the bots do will be displayed when a bot is selected.
     global BotInfo
+    global PreviousStrat
+    Player2BotLabel.config(text="")
     if BotInfo == True:
         match Player:
             case "RandomBot":
-                Player2BotLabel.config(text="Plays a random move")
+                Player2BotLabel.config(text="Plays a\nrandom move")
             
             case "RockBot":
                 Player2BotLabel.config(text="Only plays rock")
@@ -546,7 +616,7 @@ def Player2ListUpdate(Player):      #If the easteregg is activated, descriptions
                 Player2BotLabel.config(text="Only plays paper")
 
             case "ScissorsBot":
-                Player2BotLabel.config(text="Only plays scissors")
+                Player2BotLabel.config(text="Only plays\nscissors")
 
             case "CopyBot":
                 Player2BotLabel.config(text="Copies\nopponents move")
@@ -560,11 +630,20 @@ def Player2ListUpdate(Player):      #If the easteregg is activated, descriptions
             case "CounterBot":
                 Player2BotLabel.config(text="Counts what moves\nhis opponent\nplays and plays\nthe winning move\nagainst his\nopponents most\ncommon move")
 
+            case "RageBot":
+                Player2BotLabel.config(text="Is usually nice,\nbut if he loses\ntoo much he\ngets angry")
+
             case "ImpossibleBot":
                 Player2BotLabel.config(text="Does not lose\n\nOnly works against\nHumanBot!")
 
-            case "RageBot":
-                Player2BotLabel.config(text="Is usually nice,\nbut if he loses\ntoo much he\ngets angry")
+            case "FinalBossBot":
+                Player2BotLabel.config(text=Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem")
+
+    else:
+        match Player:
+            case "ImpossibleBot":
+                Player2BotLabel.config(text="Only works against\nHumanBot!")
+
     ResetLogs()
 
 
