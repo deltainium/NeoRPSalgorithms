@@ -295,7 +295,7 @@ def EvaluationBot(RoundLog,Enemy):
     if Enemy is None:
         Enemy = Introspection("EvaluationBot")
 
-    if Enemy == 0:
+    if Enemy == 0:  #Translate the enemy type (Integer) to Outcomes so that we can use it to see who won the previous match
         Enemy_outcome = Outcomes.P2
     elif Enemy == 1:
         Enemy_outcome = Outcomes.P1
