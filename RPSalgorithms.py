@@ -93,6 +93,26 @@ BotList = [             #Add list of bots here.
     "RageBot",
 ]
 
+def Introspection(BotName):    #You must know yourself to know your enemy. Figures out who the bot is and returns who his opponent is (Why his opponent? Because thats what we actually want to know).
+
+    global P1Bot
+    global P2Bot
+    global Duo
+
+    if Duo == True:              #Duo checks if both players are the same, if they are the same it will return 0 and turn a boolean true so that when the next bot does introspection, they will be returned 1 instantly
+        return 1
+
+    if P1Bot == P2Bot:
+        Duo = True
+        return 0
+    elif P1Bot == BotName:
+        return 1
+    elif P2Bot == BotName:
+        return 0
+    else:
+        print("Error: Bot is having an existencial crisis! Who is bot???")
+        print("P1: "+P1Value.get()," | P2: "+P2Value.get()," | BotName: "+BotName)
+
 #region | Player (bot) Algorithms
 def RandomBot():                                    #Chooses a pseudo random move
     match random.randint(0,2): 
@@ -139,19 +159,16 @@ def PaperBot():                                     #Will always play paper
 def ScissorsBot():                                  #Will always play scissors
     return Move.Scissors
 
-def CopyBot(RoundLog,PlayerLog):                    #Bugged when playing against itself, will play the enemies last move.
-    if PlayerLog[len(RoundLog)-1][0] == "CopyBot":
-        Enemy = 1
-    else:
-        Enemy = 0
+def CopyBot(RoundLog,Enemy):                    #Bugged when playing against itself, will play the enemies last move.
+    if Enemy is None:
+        Enemy = Introspection("CopyBot")
 
     return RoundLog[len(RoundLog)-1][Enemy]
 
-def BeatLastBot(RoundLog,PlayerLog):                 #Will Play the winning move against the enemies last move.
-    if PlayerLog[len(RoundLog)-1][0] == "BeatLastBot":
-        Enemy = 1
-    else:
-        Enemy = 0
+def BeatLastBot(RoundLog,Enemy):                 #Will Play the winning move against the enemies last move.
+
+    if Enemy is None:
+        Enemy = Introspection("BeatLastBot")
 
     match RoundLog[len(RoundLog)-1][Enemy]:
         case Move.Rock:
@@ -163,11 +180,10 @@ def BeatLastBot(RoundLog,PlayerLog):                 #Will Play the winning move
         case Move.Scissors:
             return Move.Rock
 
-def GenerousBot(RoundLog,PlayerLog):                #Will play the losing move against the enemies last move.
-    if PlayerLog[len(RoundLog)-1][0] == "GenerousBot":
-        Enemy = 1
-    else:
-        Enemy = 0
+def GenerousBot(RoundLog,Enemy):                #Will play the losing move against the enemies last move.
+
+    if Enemy is None:
+        Enemy = Introspection("GenerousBot")
 
     match RoundLog[len(RoundLog)-1][Enemy]:
         case Move.Rock:
@@ -181,32 +197,38 @@ def GenerousBot(RoundLog,PlayerLog):                #Will play the losing move a
 
 RageBot_Friendly = True
 Rage = 0
-def RageBot(RoundLog,PlayerLog):                    #Will play generousbot, but if the bot loses 5 times in a row, it will enter a rage mode and play BeatLastBot for the rest of the game
+def RageBot(RoundLog,Enemy):                    #Will play generousbot, but if the bot loses 5 times in a row, it will enter a rage mode and play BeatLastBot for the rest of the game
     global RageBot_Friendly
     global Rage
 
-    if PlayerLog[len(PlayerLog)-1][0] == "RageBot":
-        Enemy = Outcomes.P2
-    else:
-        Enemy = Outcomes.P1
+    if Enemy is None:
+        Enemy = Introspection("RageBot")
 
-    if RageBot_Friendly == True and RoundLog[len(RoundLog)-1][2] == Enemy:
+    if Enemy == 1:
+        RageEnemy = Outcomes.P2
+    else:
+        RageEnemy = Outcomes.P1
+
+    if RageBot_Friendly == True and RoundLog[len(RoundLog)-1][2] == RageEnemy:  #Checks if the bot is friendly and if the enemy won the round, if both are true, rage is increased, else, rage is decreased.
         Rage += 1
     else:
-        Rage = 0
+        if Rage  != 0:      #Looks sketchy since if the code skips 0 and becomes negative, nothing is stopping it from just decreasing far below zero, oh well its probably fine.
+            Rage -= 1
 
     if Rage > 4:
         Player2BotLabel.config(text="RAGING!!")
         RageBot_Friendly = False
     
     if RageBot_Friendly == True:
-        return GenerousBot(RoundLog,PlayerLog)
+        return GenerousBot(RoundLog,Enemy)
     else:
-        return BeatLastBot(RoundLog,PlayerLog)
+        return BeatLastBot(RoundLog,Enemy)
 
 LastMoves = []
 def CounterBot(RoundLog,PlayerLog):                 #Will play the move that wins against the enemies recently most common moves.
     global LastMoves
+
+    MemoryCapacity = 5                              #This determines how good the bots memory is, the number corresponds with how many rounds the bot is able to remember
 
     if PlayerLog[len(RoundLog)-1][0] == "CounterBot":
         Enemy = 1
@@ -214,7 +236,7 @@ def CounterBot(RoundLog,PlayerLog):                 #Will play the move that win
         Enemy = 0
 
     LastMoves.append(RoundLog[len(RoundLog)-1][Enemy])
-    if len(LastMoves) > 5:      #This code determines how good the bots memory is, if the list of last moves is bigger than some integer, then forget the oldest move.
+    if len(LastMoves) > MemoryCapacity:
         LastMoves.pop(0)
 
     RockMoves_CountBot = LastMoves.count(Move.Rock)
@@ -294,6 +316,12 @@ def CheckWinner(P1,P2,PlayerLog):     #P1 is player 1's move, P2 is player 2's m
 
 
 def MatchMaker():           #Matchmakes <3, first identifies the option chosen on the lists, then has them fight and logs the players and round 
+    Enemy = None
+    global P1Bot
+    global P2Bot
+    global Duo
+
+
     #Makes the bot chosen on the list of bots into the player for player 1
     match P1Value.get():
         case "RandomBot":
@@ -320,21 +348,21 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
             if len(RoundLog) == 0:
                 P1 = RandomBot()
             else:
-                P1 = CopyBot(RoundLog,PlayerLog)
+                P1 = CopyBot(RoundLog,Enemy)
             P1Bot = "CopyBot"
 
         case "BeatLastBot":
             if len(RoundLog) == 0:
                 P1 = RandomBot()
             else:
-                P1 = BeatLastBot(RoundLog,PlayerLog)
+                P1 = BeatLastBot(RoundLog,Enemy)
             P1Bot = "BeatLastBot"
 
         case "GenerousBot":
             if len(RoundLog) == 0:
                 P1 = RandomBot()
             else:
-                P1 = GenerousBot(RoundLog,PlayerLog)
+                P1 = GenerousBot(RoundLog,Enemy)
             P1Bot = "GenerousBot"
     
         case "CounterBot":
@@ -348,7 +376,7 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
             if len(RoundLog) == 0:
                 P1 = RandomBot()
             else:
-                P1 = RageBot(RoundLog,PlayerLog)
+                P1 = RageBot(RoundLog,Enemy)
             P1Bot = "RageBot"
         
     #Makes the bot chosen on the list of bots into the player for player 2
@@ -373,21 +401,21 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
             if len(RoundLog) == 0:
                 P2 = RandomBot()
             else:
-                P2 = CopyBot(RoundLog,PlayerLog)
+                P2 = CopyBot(RoundLog,Enemy)
             P2Bot = "CopyBot"
 
         case "BeatLastBot":
             if len(RoundLog) == 0:
                 P2 = RandomBot()
             else:
-                P2 = BeatLastBot(RoundLog,PlayerLog)
+                P2 = BeatLastBot(RoundLog,Enemy)
             P2Bot = "BeatLastBot"
 
         case "GenerousBot":
             if len(RoundLog) == 0:
                 P2 = RandomBot()
             else:
-                P2 = GenerousBot(RoundLog,PlayerLog)
+                P2 = GenerousBot(RoundLog,Enemy)
             P2Bot = "GenerousBot"
     
         case "CounterBot":
@@ -405,7 +433,7 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
             if len(RoundLog) == 0:
                 P2 = RandomBot()
             else:
-                P2 = RageBot(RoundLog,PlayerLog)
+                P2 = RageBot(RoundLog,Enemy)
             P2Bot = "RageBot"
 
     if AutoFight.get() == 1:
@@ -422,6 +450,7 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
         PlayerLog.append((P1Bot,P2Bot))
         RoundLog.append(CheckWinner(P1,P2,PlayerLog))
 
+    Duo = False
     #print(RoundLog[len(RoundLog)-1])
 
 
@@ -502,16 +531,48 @@ def Player1ListUpdate(Player):
                 widgets.destroy()
     ResetLogs()
 
+BotInfo = False
+def Player2ListUpdate(Player):      #If the easteregg is activated, descriptions of what the bots do will be displayed when a bot is selected.
+    global BotInfo
+    if BotInfo == True:
+        match Player:
+            case "RandomBot":
+                Player2BotLabel.config(text="Plays a random move")
+            
+            case "RockBot":
+                Player2BotLabel.config(text="Only plays rock")
+                
+            case "PaperBot":
+                Player2BotLabel.config(text="Only plays paper")
 
-def Player2ListUpdate(Player):
-    if Player == "ImpossibleBot":
-        Player2BotLabel.config(text="Only works against\nHumanBot!")
-    else:
-        Player2BotLabel.config(text="")
+            case "ScissorsBot":
+                Player2BotLabel.config(text="Only plays scissors")
+
+            case "CopyBot":
+                Player2BotLabel.config(text="Copies\nopponents move")
+
+            case "BeatLastBot":
+                Player2BotLabel.config(text="Tries to play the\nwinning move\nagainst opponents\nlast move")
+
+            case "GenerousBot":
+                Player2BotLabel.config(text="Tries to play the\nlosing move\nagainst opponents\nlast move")
+
+            case "CounterBot":
+                Player2BotLabel.config(text="Counts what moves\nhis opponent\nplays and plays\nthe winning move\nagainst his\nopponents most\ncommon move")
+
+            case "ImpossibleBot":
+                Player2BotLabel.config(text="Does not lose\n\nOnly works against\nHumanBot!")
+
+            case "RageBot":
+                Player2BotLabel.config(text="Is usually nice,\nbut if he loses\ntoo much he\ngets angry")
     ResetLogs()
 
 
 def RerollTrademark():              #Is for easteregg, clicking the Trademark (the funny text in the right corner) will reroll the text
+    global BotInfo
+    BotInfo = True
+    Player2ListUpdate(P2Value.get())
+
     global TrademarkText
     NewTrademarkText = funnytexts[random.randint(0,len(funnytexts)-1)]
 
@@ -530,14 +591,17 @@ def RerollTrademark():              #Is for easteregg, clicking the Trademark (t
 FightButton = Button(InfoFrame,text="Fight!",command=MatchMaker,padx=35,pady=10)
 ResetButton = Button(InfoFrame,text="Reset logs",command=ResetLogs)
 
-P1Value = StringVar()
-P1Value.set("RandomBot")      #P1Value.set(BotList[random.randint(0,len(BotList))-1])   #Sette random starting bot
-P2Value = StringVar()
-P2Value.set("RandomBot")
-
 P2BotList = BotList.copy()
 P2BotList.remove("HumanBot")
+Starting_P2BotList = P2BotList.copy()
 P2BotList.append("ImpossibleBot")
+
+P1Value = StringVar()
+P1Value.set(BotList[random.randint(0,len(BotList))-1]) 
+P2Value = StringVar()
+P2Value.set(Starting_P2BotList[random.randint(0,len(Starting_P2BotList))-1])
+
+Player1ListUpdate(P1Value.get())
 
 P1List = OptionMenu(P1InputFrame,P1Value,*BotList,command=Player1ListUpdate)
 P2List = OptionMenu(P2InputFrame,P2Value,*P2BotList,command=Player2ListUpdate)
