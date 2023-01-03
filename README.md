@@ -1,9 +1,15 @@
+
 # Rock Paper Scissors algorithms!
 
-!! THIS PROGRAM HAS DEPENDENCIES !!  
-tkinter  
-pillow
+RPSalgorithms is a program that showcases different Rock Paper Scissors algorithms I've come up with. Have fun testing out the different bots and maybe you might discover some secrets along the way.
 
-RPSalgorithms is a program that showcases different Rock Paper Scissors algorithms ive come up with. Have fun testing out the different bots and maybe you might discover some secrets along the way.
 
-This program was made by Ari Rexhaj
+
+
+## Dependencies
+ - [tkinter](https://docs.python.org/3/library/tkinter.html)
+ - [pillow](https://python-pillow.org/)
+
+## Credits
+Code written by Ari Rexhaj
+
