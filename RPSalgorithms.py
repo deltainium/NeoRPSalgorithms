@@ -637,7 +637,7 @@ def Player2ListUpdate(Player):      #If the easteregg is activated, descriptions
                 Player2BotLabel.config(text="Does not lose\n\nOnly works against\nHumanBot!")
 
             case "FinalBossBot":
-                Player2BotLabel.config(text=Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem")
+                Player2BotLabel.config(text=Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem"))
 
     else:
         match Player:
