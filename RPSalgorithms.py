@@ -324,7 +324,7 @@ TieScoreValue = 0
 
 IsAutoFighting = False
 
-def CheckWinner(P1,P2,PlayerLog):     #P1 is player 1's move, P2 is player 2's move. This function checks the winner and is pretty much the main function, handles
+def CheckWinner(P1,P2,PlayerLog):     #P1 is player 1's move, P2 is player 2's move. This function checks the winner and is pretty much the main function, here all the information that is crucial to the Bots is made and this function is the one that calls most of the other functions.
     global P1ScoreValue
     global P2ScoreValue
     global TieScoreValue
