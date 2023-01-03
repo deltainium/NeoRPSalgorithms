@@ -91,7 +91,7 @@ BotList = [             #Add list of bots here.
     "GenerousBot",
     "CounterBot",
     "RageBot",
-    "FinalBossBot"
+    "EvaluationBot"
 ]
 
 def Introspection(BotName):    #You must know yourself to know your enemy. Figures out who the bot is and returns who his opponent is (Why his opponent? Because thats what we actually want to know).
@@ -112,7 +112,7 @@ def Introspection(BotName):    #You must know yourself to know your enemy. Figur
         return 0
     else:
         print("Error: Bot is having an existencial crisis! Who is bot???")
-        print("P1: "+P1Value.get()," | P2: "+P2Value.get()," | BotName: "+BotName)
+        print("P1: "+P1Value.get()," | P2: "+P2Value.get()," | BotName: "+BotName)  #Debugging, incase någe går kalt med introspection, så hjelpe det å vita dette.
 
 #region | Player (bot) Algorithms
 def RandomBot():                                    #Chooses a pseudo random move
@@ -230,6 +230,7 @@ def CounterBot(RoundLog,Enemy):                 #Will play the move that wins ag
     global LastMoves
     if Enemy is None:
         Enemy = Introspection("CounterBot")
+        Original = True
 
     LastMoves.append(RoundLog[len(RoundLog)-1][Enemy])
     if len(LastMoves) > 5:
@@ -264,13 +265,14 @@ def ImpossibleBot():
 PreviousStrat = "RandomBot"
 strats = {"RandomBot": -5, "CopyBot": 0, "BeatLastBot": 0, "GenerousBot": 0, "CounterBot": 0,}
 
-def FinalBossBot(RoundLog,Enemy):   #Has a multitude of different bots it can choose from, and picks the one that it believes has the highest odds of winning based off a scoring system
+def EvaluationBot(RoundLog,Enemy):   #Has a multitude of different bots it can choose from, and picks the one that it believes has the highest odds of winning based off a scoring system
     global PreviousStrat
     global strats
     global BotInfo
+    global LastMoves
 
     if Enemy is None:
-        Enemy = Introspection("FinalBossBot")
+        Enemy = Introspection("EvaluationBot")
 
     if Enemy == 0:
         Enemy_outcome = Outcomes.P2
@@ -279,15 +281,19 @@ def FinalBossBot(RoundLog,Enemy):   #Has a multitude of different bots it can ch
     else:
         Enemy_outcome = Outcomes.Tie
 
-    if RoundLog[len(RoundLog)-1][2] == Outcomes.Tie:            #Tie
-        strats[PreviousStrat] = strats[PreviousStrat] - 5 
-    elif RoundLog[len(RoundLog)-1][2] == Enemy_outcome:         #Win
+    if RoundLog[len(RoundLog)-1][2] == Outcomes.Tie:            #Tie, here the penalty for getting tied is given
+        strats[PreviousStrat] = strats[PreviousStrat] - 7.5 
+    elif RoundLog[len(RoundLog)-1][2] == Enemy_outcome:         #Win, here the reward for winning is given
         strats[PreviousStrat] = strats[PreviousStrat] + 20  
-    else:                                                       #Lose
-        strats[PreviousStrat] = strats[PreviousStrat] * round((random.randint(0,11) / 100),3) - 10
+    else:                                                       #Lose, here the penatly for losing is given
+        strats[PreviousStrat] = strats[PreviousStrat] * round((random.randint(0,11) / 100),3) - 12.5
 
-    if BotInfo == True:
+    if BotInfo == True and P2Value.get() == "EvaluationBot":
         Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem\n\n"+PreviousStrat)
+
+    LastMoves.append(RoundLog[len(RoundLog)-1][Enemy])
+    if len(LastMoves) > 5:
+        LastMoves.pop(0)
 
     PreviousStrat = max(strats, key=strats.get)
     print(strats)
@@ -417,7 +423,7 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
             if len(RoundLog) == 0:
                 P1 = RandomBot()
             else:
-                P1 = CounterBot(RoundLog,PlayerLog)
+                P1 = CounterBot(RoundLog,Enemy)
             P1Bot = "CounterBot"
 
         case "RageBot":
@@ -427,12 +433,12 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
                 P1 = RageBot(RoundLog,Enemy)
             P1Bot = "RageBot"
 
-        case "FinalBossBot":
+        case "EvaluationBot":
             if len(RoundLog) == 0:
                 P1 = RandomBot()
             else:
-                P1 = FinalBossBot(RoundLog,Enemy)
-            P1Bot = "FinalBossBot"
+                P1 = EvaluationBot(RoundLog,Enemy)
+            P1Bot = "EvaluationBot"
 
         
     #Makes the bot chosen on the list of bots into the player for player 2
@@ -478,7 +484,7 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
             if len(RoundLog) == 0:
                 P2 = RandomBot()
             else:
-                P2 = CounterBot(RoundLog,PlayerLog)
+                P2 = CounterBot(RoundLog,Enemy)
             P2Bot = "CounterBot"
 
         case "ImpossibleBot":
@@ -492,12 +498,12 @@ def MatchMaker():           #Matchmakes <3, first identifies the option chosen o
                 P2 = RageBot(RoundLog,Enemy)
             P2Bot = "RageBot"
 
-        case "FinalBossBot":
+        case "EvaluationBot":
             if len(RoundLog) == 0:
                 P2 = RandomBot()
             else:
-                P2 = FinalBossBot(RoundLog,Enemy)
-            P2Bot = "FinalBossBot"
+                P2 = EvaluationBot(RoundLog,Enemy)
+            P2Bot = "EvaluationBot"
 
     if AutoFight.get() == 1:
         AutoFight.set(0)
@@ -636,7 +642,7 @@ def Player2ListUpdate(Player):      #If the easteregg is activated, descriptions
             case "ImpossibleBot":
                 Player2BotLabel.config(text="Does not lose\n\nOnly works against\nHumanBot!")
 
-            case "FinalBossBot":
+            case "EvaluationBot":
                 Player2BotLabel.config(text=Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem"))
 
     else:
