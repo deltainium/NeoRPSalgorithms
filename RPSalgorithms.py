@@ -296,26 +296,20 @@ def EvaluationBot(RoundLog,Enemy):   #Has a multitude of different bots it can c
         LastMoves.pop(0)
 
     PreviousStrat = max(strats, key=strats.get)
-    print(strats)
     match PreviousStrat:
         case "RandomBot":
-            print("Random")
             return RandomBot()
 
         case "CopyBot":
-            print("Copy")
             return CopyBot(RoundLog,Enemy)
 
         case "BeatLastBot":
-            print("BeatLast")
             return BeatLastBot(RoundLog,Enemy)
 
         case "GenerousBot":
-            print("Generous")
             return GenerousBot(RoundLog,Enemy)
 
         case "CounterBot":
-            print("Counter")
             return CounterBot(RoundLog,Enemy)
 
 
