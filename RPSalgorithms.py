@@ -3,10 +3,12 @@
 #       ^               ^                 ^
 #    P1 Move     |   P2 Move     |      Winner
 
-import enum, random, os, os.path, time
-from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu
+import enum, random, os, os.path, re
+#from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu, LabelFrame,NW, Toplevel
+from tkinter import *
 from PIL import Image, ImageTk
 from playsound import playsound
+
 class Move(enum.Enum):
     Rock = 1
     Paper = 2
@@ -54,7 +56,7 @@ img = img.resize((50,50))
 Button_ScissorsImage = ImageTk.PhotoImage(img)
 
 if random.randint(1,101) <= 5:  #Nothing to see here
-    print("Can you smell what the rock is cooking?")
+    print("\nCan you smell what the rock is cooking?")
     img = Image.open(FilePath+"/Images/THErock.jpg")
 else:
     img = Image.open(FilePath+"/Images/rock.jpg")
@@ -67,7 +69,43 @@ img = Image.open(FilePath+"/Images/Jumpscare.jpg")
 img = img.resize((screen_width,screen_height))
 JumpScareImage = ImageTk.PhotoImage(img)
 
+class HoverInfo(Menu):
+    def __init__(self, parent, text, command=None):
+       self._com = command
+       Menu.__init__(self,parent, tearoff=0)
+       if not isinstance(text, str):
+          raise TypeError('Trying to initialise a Hover Menu with a non string type: ' + text.__class__.__name__)
+       toktext=re.split('\n', text)
+       for t in toktext:
+            self.add_command(label = t)
+            self._displayed=False
+            self.master.bind("<Enter>",self.Display )
+            self.master.bind("<Leave>",self.Remove )
+
+    def __del__(self):
+       self.master.unbind("<Enter>")
+       self.master.unbind("<Leave>")
+
+    def Display(self,event):
+       if not self._displayed:
+          self._displayed=True
+          self.post(event.x_root, event.y_root)
+       if self._com != None:
+          self.master.unbind_all("<Return>")
+          self.master.bind_all("<Return>", self.Click)
+
+    def Remove(self, event):
+     if self._displayed:
+       self._displayed=False
+       self.unpost()
+     if self._com != None:
+       self.unbind_all("<Return>")
+
+    def Click(self, event):
+       self._com()
+
 def LaunchStandardMode():
+    root.attributes('-fullscreen',False)
     CleanRoot()
     global CurrentMode
     global P1Frame
@@ -142,7 +180,6 @@ def LaunchStandardMode():
     InfoFrame.pack(fill="x",side=BOTTOM)
     WinnerLabel.pack(side=TOP)
 
-    AutoFight_InfoFrame.pack(side=TOP)
     AutoFight_CheckBox.pack(side=TOP)
     AutoFightText.pack(side=LEFT)
     AutoFightRange.pack(side=RIGHT)
@@ -163,12 +200,70 @@ def LaunchStandardMode():
     LaunchStandardMode_Buttons()
 
 def LaunchTournamentMode():
+    #Put all tkinter UI stuff in here and make them global
+    root.attributes('-fullscreen',False)
     CleanRoot()
     global CurrentMode
+    global InputFramesHolder
+    global RoundsPerFight
+    global WinningPoints
+    global LosingPoints
+    global DrawPoints
+    global Player1Color
+    global Player2Color
+    global DrawColor
 
     CurrentMode = Mode.Tournament
-    #Put all tkinter UI stuff in here and make them global
-    Label(MainFrame,text="tournament mode").pack()
+    GenerateHeatmap()
+    
+    InputFramesHolder = LabelFrame(MainFrame)
+    MainInputFrame = LabelFrame(InputFramesHolder,text="variables")
+    ColorInputFrame = LabelFrame(InputFramesHolder,text="Color settings")
+    LeaderboardFrame = LabelFrame(InputFramesHolder)
+
+    #Variables
+    Label(MainInputFrame,text="Rounds per fight ").grid(row=0,column=0)
+    RoundsPerFight = Entry(MainInputFrame,width="10")
+    RoundsPerFight.insert(0,"10")
+    RoundsPerFight.grid(row=0,column=1)
+    Label(MainInputFrame,text="Score for winning ").grid(row=1,column=0)
+    WinningPoints = Entry(MainInputFrame,width="10")
+    WinningPoints.insert(0,"1")
+    WinningPoints.grid(row=1,column=1)
+    Label(MainInputFrame,text="Score for losing ").grid(row=2,column=0)
+    LosingPoints = Entry(MainInputFrame,width="10")
+    LosingPoints.insert(0,"1")
+    LosingPoints.grid(row=2,column=1)
+    Label(MainInputFrame,text="Score for draw ").grid(row=3,column=0)
+    DrawPoints = Entry(MainInputFrame,width="10")
+    DrawPoints.insert(0,"1")
+    DrawPoints.grid(row=3,column=1)
+
+    #Color settings
+    Label(ColorInputFrame,text="Player 1 color ").grid(row=0,column=0)
+    Player1Color = Entry(ColorInputFrame,width="13")
+    Player1Color.insert(0,"#ff0000")
+    Player1Color.grid(row=0,column=1)
+    Label(ColorInputFrame,text="Player 2 color ").grid(row=1,column=0)
+    Player2Color = Entry(ColorInputFrame,width="13")
+    Player2Color.insert(0,"#0000ff")
+    Player2Color.grid(row=1,column=1)
+    Label(ColorInputFrame,text="Draw color     ").grid(row=2,column=0)
+    DrawColor = Entry(ColorInputFrame,width="13")
+    DrawColor.insert(0,"#00ff00")
+    DrawColor.grid(row=2,column=1)
+
+    #Leaderboard
+    Label(LeaderboardFrame,text="Leaderboard",padx=45).grid(row=0,column=0)
+    InnerLeaderboardFrame = Frame(LeaderboardFrame)
+    InnerLeaderboardFrame.grid(row=1,column=0)
+    Label(InnerLeaderboardFrame,text="FIX LATER").grid(row=0,column=0)
+
+    InputFramesHolder.grid(row=0,column=1)
+    MainInputFrame.grid(row=0,column=0,padx=20,pady=10)
+    ColorInputFrame.grid(row=1,column=0)
+    LeaderboardFrame.grid(row=2,column=0,padx=20,pady=10)
+    LaunchTournamentMode_Buttons()
 
 def LaunchSecretMode():
     CleanRoot()
@@ -183,7 +278,7 @@ def LaunchSecretMode():
     try:
         playsound(FilePath+'/misc/scary.mp3')
     except:
-        print("Playsound not installed")
+        print("\n!! Error: Playsound is not installed or version 1.2.2 is not installed !!\nplease run the following lines into command prompt if you wish to install Playsound. If you do not wish to install playsound, please ignore the error.\npip uninstall playsound   (only if you have playsound installed)\npip install playsound==1.2.2\n")
 
 def CleanRoot():
     for widgets in MainFrame.winfo_children():
@@ -196,10 +291,9 @@ filemenu.add_command(label="Tournament mode", command=LaunchTournamentMode)
 
 if random.randint(1,101) <= 10:
     filemenu.add_command(label="Secret mode (rare)", command=LaunchSecretMode)
-    print("Secret unlocked!")
+    print("\nSecret unlocked!")
     root.quit()
     
-
 menubar.add_cascade(label="Modes", menu=filemenu)
 filemenu.add_separator()
 
@@ -209,6 +303,8 @@ filemenu.add_command(label="Exit", command=root.quit)
 
 RoundLog = []
 PlayerLog = []
+TournamentLog = []
+Summary = []
 
 P1ScoreValue = 0
 P2ScoreValue = 0
@@ -228,7 +324,6 @@ BotList = [     #Add list of bots here.
     "CounterBot",
     "RageBot",
     "EvaluationBot"
-
     #TesterBot, this bot works like EvaluationBot, 
     # but before he uses the first rounds to test every of his strategies 'n' amount of times, 
     # and once its done it keeps playing like before. The advantage to this is that the bot will 
@@ -236,27 +331,28 @@ BotList = [     #Add list of bots here.
     # rounds to test.
 ]
 
+TournamentBotList = BotList.copy()
+TournamentBotList.remove("HumanBot")
+
 def Introspection(BotName):
     #You must know yourself to know your enemy. Figures out who the bot 
     #is and returns what player (number) his opponent is 
     #(Why his opponent? Because thats what we actually want to know)
-    global P1Bot
-    global P2Bot
     global Duo
 
     if Duo == True:     #Duo checks if both players are the same, if they are the same it will return 0 and turn a boolean true so that when the next bot does introspection, they will be returned 1 instantly
         return 0
 
-    if P1Bot == P2Bot:
+    if P1Value.get() == P2Value.get():
         Duo = True
         return 1
-    elif P1Bot == BotName:
+    elif P1Value.get() == BotName:
         return 1
-    elif P2Bot == BotName:
+    elif P2Value.get() == BotName:
         return 0
     else:
         print("Error: Bot is having an existencial crisis! Who is bot???")
-        print("P1: "+P1Value.get()," | P2: "+P2Value.get()," | BotName: "+BotName)  #Debugging, incase någe går kalt med introspection, så hjelpe det å vita dette.
+        print("P1: "+P1Value.get()," | P2: "+P2Value.get()," | BotName: "+BotName," | Duo: ",Duo)  #Debugging, incase någe går kalt med introspection, så hjelpe det å vita dette.
 
 #region | Player (bot) Algorithms
 def RandomBot():
@@ -310,6 +406,7 @@ def ScissorsBot():  #Will always play scissors
     return Move.Scissors
 
 def CopyBot(RoundLog,Enemy):    #will play the enemies last move.
+
     if Enemy is None:
         Enemy = Introspection("CopyBot")
 
@@ -370,7 +467,8 @@ def RageBot(RoundLog,Enemy):
             Rage -= 1
 
     if Rage > 4:
-        Player2BotLabel.config(text="RAGING!!")
+        if CurrentMode == Mode.Standard:
+            Player2BotLabel.config(text="RAGING!!")
         RageBot_Friendly = False
     
     if RageBot_Friendly == True:
@@ -495,47 +593,51 @@ def CheckWinner(P1,P2,PlayerLog):
     global P2ScoreValue
     global TieScoreValue
     
-    if len(PlayerLog) > 1 and PlayerLog[len(PlayerLog)-2] == PlayerLog[len(PlayerLog)-1]:
-        pass
-    else:
-        P1ScoreValue = 0
-        P2ScoreValue = 0
-        TieScoreValue = 0
-        P1Score.config(text=("Wins: "+str(P1ScoreValue)))
-        P2Score.config(text=("Wins: "+str(P2ScoreValue)))
-        TieScore.config(text=("Ties: "+str(TieScoreValue)))
-
-    if IsAutoFighting == False:
+    if CurrentMode == Mode.Standard:
+        if len(PlayerLog) > 1 and PlayerLog[len(PlayerLog)-2] == PlayerLog[len(PlayerLog)-1]:
+            pass
+        else:
+            P1ScoreValue = 0
+            P2ScoreValue = 0
+            TieScoreValue = 0
+            P1Score.config(text=("Wins: "+str(P1ScoreValue)))
+            P2Score.config(text=("Wins: "+str(P2ScoreValue)))
+            TieScore.config(text=("Ties: "+str(TieScoreValue)))
+        
+    if IsAutoFighting == False and CurrentMode == Mode.Standard:
         ImageHandler(P1,P2)
 
     #Checks for tie, this is done first because it is cheap to check and if 
     #the result is a tie then we wont need to check any win conditions, 
     #saving us some computer processesing 
     if P1 == P2:
-        WinnerLabel.config(text="It was a tie!")
-        TieScoreValue += 1
-        TieScore.config(text=("Ties: "+str(TieScoreValue)))
+        if CurrentMode == Mode.Standard:
+            WinnerLabel.config(text="It was a tie!")
+            TieScoreValue += 1
+            TieScore.config(text=("Ties: "+str(TieScoreValue)))
         return(P1,P2,Outcomes.Tie)
 
     #All Player 2 win conditions, if none of them are met, player 1 wins.
     #look into optimizations here, maybe some super smart logic?
     elif P1 == Move.Rock and P2 == Move.Paper or P1 == Move.Paper and P2 == Move.Scissors or P1 == Move.Scissors and P2 == Move.Rock:
-        WinnerLabel.config(text="Player 2 wins!")
-        P2ScoreValue += 1
-        P2Score.config(text=("Wins: "+str(P2ScoreValue)))
+        if CurrentMode == Mode.Standard:
+            WinnerLabel.config(text="Player 2 wins!")
+            P2ScoreValue += 1
+            P2Score.config(text=("Wins: "+str(P2ScoreValue)))
         return(P1,P2,Outcomes.P2)
 
     #If the game is not tied, and player 2 does not win, 
     #then the only outcome is that P1 wins, therefor we dont
     #need to check anymore moves
     else:
-        WinnerLabel.config(text="Player 1 wins!")
-        P1ScoreValue += 1
-        P1Score.config(text=("Wins: "+str(P1ScoreValue)))
+        if CurrentMode == Mode.Standard:
+            WinnerLabel.config(text="Player 1 wins!")
+            P1ScoreValue += 1
+            P1Score.config(text=("Wins: "+str(P1ScoreValue)))
         return(P1,P2,Outcomes.P1)
 
 
-def MatchMaker():           
+def MatchMaker():
     #Matchmakes <3, first identifies the option chosen on the lists, 
     #then has them fight and logs the players and round 
     Enemy = None
@@ -672,18 +774,23 @@ def MatchMaker():
                 P2 = EvaluationBot(RoundLog,Enemy)
             P2Bot = "EvaluationBot"
 
-    if AutoFight.get() == 1:
-        AutoFight.set(0)
-        global IsAutoFighting
-        IsAutoFighting = True
+    PlayerLog.append((P1Bot,P2Bot))
+    RoundLog.append(CheckWinner(P1,P2,PlayerLog))
 
-        for _ in range(0,int(AutoFightRange.get())):
-            MatchMaker()
-        IsAutoFighting = False
-        AutoFight.set(1)
+    if CurrentMode == Mode.Standard:
+        if AutoFight.get() == 1:
+            AutoFight.set(0)
+            global IsAutoFighting
+            IsAutoFighting = True
 
-    else:
-        PlayerLog.append((P1Bot,P2Bot))
+            for _ in range(0,int(AutoFightRange.get())):
+                MatchMaker()
+            IsAutoFighting = False
+            AutoFight.set(1)
+
+    elif CurrentMode == Mode.Tournament:
+        CurrentMatch = CheckWinner(P1,P2,PlayerLog)[2]
+        TournamentLog.append((P1Bot,P2Bot,CurrentMatch))
         RoundLog.append(CheckWinner(P1,P2,PlayerLog))
 
     Duo = False
@@ -822,18 +929,126 @@ def Player2ListUpdate(Player):
 
     ResetLogs()
 
+def GenerateHeatmap():
+    TextSpread = 24
+
+    # sideways text and grid of canvases
+    #Frame shenanigans
+    HeatMapFrame = Frame(MainFrame)
+    HeatMapFrame.grid(row=0,column=0)
+    MatchingFrame = Frame(HeatMapFrame)
+    MatchingFrame.grid(row=1,column=1,sticky="nw")
 
 
-MainFrame.pack()
+    for i in range(0,len(TournamentBotList)):
+        CanvasHeight = TextSpread+i*TextSpread
+    CanvasWidth = 100
+
+    canvas_1_manage = Canvas(HeatMapFrame,height=CanvasWidth,width=CanvasHeight)
+    canvas_1_manage.grid(row = 0, column = 1)
+    canvas_2_manage = Canvas(HeatMapFrame,width=CanvasWidth,height=CanvasHeight)
+    canvas_2_manage.grid(row = 1, column = 0)
+
+    for i in range(0,len(TournamentBotList)):
+        canvas_2_manage.create_text(CanvasWidth,1+TextSpread/2+i*TextSpread, text = TournamentBotList[i], anchor = "e")
+
+    for i in range(0,len(TournamentBotList)):
+        canvas_1_manage.create_text(TextSpread/2+i*TextSpread, CanvasWidth, text = TournamentBotList[i], angle = 90, anchor = "w")
+
+
+    for y in range(0,len(TournamentBotList)):
+        globals()[f"CanvasFrame{y}"] = Frame(MatchingFrame)
+        globals()[f"CanvasFrame{y}"].grid(row=y,column=2)
+        for x in range(0,len(TournamentBotList)):
+            globals()[f"MatchCanvas{x}_{y}"] = Canvas(globals()[f"CanvasFrame{y}"],width=20,height=20,background="#ff0000")
+            globals()[f"MatchCanvas{x}_{y}"].grid(column=x,row=1)
+            globals()[f"MatchCanvas{x}_{y}"].hover = HoverInfo(globals()[f"MatchCanvas{x}_{y}"],'P1 wins points: 0\nP2 wins points: 0\nDraw points: 0')
+
+    
+def HeatmapColorHandler(wins,loses,draws):
+    #globals()[f"MatchCanvas1_3"].config(background="0000ff")   #Example of how to change color of specific square
+    r = wins * 255
+    b = loses * 255
+    g = draws * 255
+
+    if r < 0:
+        r = 0
+    if b < 0:
+        b = 0
+    if g < 0:
+        g = 0
+
+    r = hex(int(r)).lstrip("0x").rstrip("L")
+    if len(r) < 2:
+        if len(r) == 0:
+            r = "00"
+        else:
+            r = "0"+r
+    b = hex(int(b)).lstrip("0x").rstrip("L")
+    if len(b) < 2:
+        if len(b) == 0:
+            b = "00"
+        else:
+            b = "0"+b
+    g = hex(int(g)).lstrip("0x").rstrip("L")
+    if len(g) < 2:
+        if len(g) == 0:
+            g = "00"
+        else:
+            g = "0"+g
+
+    return "#"+r+g+b
+
+def StartTournament():
+    global Player1_Tournament
+    global Player2_Tournament
+    global TournamentLog
+    global RoundsPerFight
+    Bots = len(TournamentBotList)
+    for y in range(0, Bots):
+        P1Value.set(TournamentBotList[y])
+        for x in range(0,Bots):
+            P2Value.set(TournamentBotList[x])
+            ResetLogs()
+            for _ in range(0,int(RoundsPerFight.get())):
+                MatchMaker()
+            ColorPoints = MatchesToPoints(TournamentLog)
+            globals()[f"MatchCanvas{x}_{y}"].config(background=HeatmapColorHandler(ColorPoints[0],ColorPoints[1],ColorPoints[2]))
+            globals()[f"MatchCanvas{x}_{y}"].hover = HoverInfo(globals()[f"MatchCanvas{x}_{y}"],text=("P1 wins points: "+str(Wins)+"\nP2 wins points: "+str(Loses)+"\nDraw points: "+str(Draws)))
+            TournamentLog = []
+            root.update()
+
+def MatchesToPoints(Matches):
+    global Wins
+    global Loses
+    global Draws
+    Wins = 0
+    Loses = 0
+    Draws = 0
+    for i in range(0,len(Matches)):
+        match Matches[i][2]:
+            case Outcomes.P1:
+                Wins += int(WinningPoints.get())
+            case Outcomes.P2:
+                Loses += int(LosingPoints.get())
+            case Outcomes.Tie:
+                Draws += int(DrawPoints.get())
+    return Wins/(0.000001+len(Matches)*int(WinningPoints.get())),Loses/(0.000001+len(Matches)*int(LosingPoints.get())),+Draws/(0.000001+len(Matches)*int(DrawPoints.get()))
+
 
 def LaunchStandardMode_Buttons():
     global Trademark
     FightButton = Button(InfoFrame,text="Fight!",command=MatchMaker,padx=35,pady=10)
     FightButton.pack(side=TOP)
+    AutoFight_InfoFrame.pack(side=TOP)
     ResetButton = Button(InfoFrame,text="Reset logs",command=ResetLogs)
     ResetButton.pack(side=LEFT)
     Trademark = Button(InfoFrame,text=TrademarkText,command=RerollTrademark,bd=0)
     Trademark.pack(side=RIGHT)
+
+def LaunchTournamentMode_Buttons():
+    StartButton = Button(InputFramesHolder,text="Start\ntournament!",command=StartTournament,padx=35,pady=10)
+    StartButton.grid(row=3,column=0,pady=10)
 
 def RerollTrademark():
     #Is for easteregg, clicking the Trademark 
@@ -856,6 +1071,8 @@ def RerollTrademark():
     TrademarkText = NewTrademarkText
     Trademark.config(text=TrademarkText)
 
+
+MainFrame.pack()
 LaunchStandardMode()
 Player1ListUpdate(P1Value.get())
 
