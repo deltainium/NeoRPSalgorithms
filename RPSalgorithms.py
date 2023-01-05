@@ -17,6 +17,12 @@ class Outcomes(enum.Enum):
     P2 = 2
     Tie = 3
 
+class Mode(enum.Enum):
+    Standard = 1
+    Tournament = 2
+    ClassicTournament = 3
+    misc = 4
+
 #region Tkinter interface shenanigans
 root = Tk()
 root.title("Rock Paper Scissors Algorithms")
@@ -24,6 +30,7 @@ root.title("Rock Paper Scissors Algorithms")
 funnytexts = ["I live in your walls","bitcoin miner","Get mad!","Lykke te 😈","<3","动态网自由门 天安門 天安门","The cake is a lie","Kanye East ©","https://tiny.cc/allahisbig","flyplassen wiki under construction","0 days without sarcasm","click me!","they are coming","promise that you will sing about me","'Desperate measures' på spotify"]
 TrademarkText = funnytexts[random.randint(0,len(funnytexts)-1)]
 MainFrame = Frame(root)
+CurrentMode = Mode.Standard
 
 #Image shenanigans
 #Get the current screen width and height
@@ -42,9 +49,9 @@ Button_PaperImage = ImageTk.PhotoImage(img)
 
 img = Image.open(FilePath+"/Images/scissors.jpg")
 img = img.resize((Imagesize,Imagesize))
+ScissorsImage = ImageTk.PhotoImage(img)
 img = img.resize((50,50))
 Button_ScissorsImage = ImageTk.PhotoImage(img)
-ScissorsImage = ImageTk.PhotoImage(img)
 
 if random.randint(1,101) <= 5:  #Nothing to see here
     print("Can you smell what the rock is cooking?")
@@ -62,7 +69,7 @@ JumpScareImage = ImageTk.PhotoImage(img)
 
 def LaunchStandardMode():
     CleanRoot()
-
+    global CurrentMode
     global P1Frame
     global P1InputFrame
     global P1Score
@@ -88,6 +95,8 @@ def LaunchStandardMode():
     global P1List
     global P2List
     global HumanBot_ButtonFrame
+
+    CurrentMode = Mode.Standard
 
     P1Frame = Frame(MainFrame)
     P1InputFrame = Frame(P1Frame)
@@ -155,17 +164,26 @@ def LaunchStandardMode():
 
 def LaunchTournamentMode():
     CleanRoot()
+    global CurrentMode
+
+    CurrentMode = Mode.Tournament
     #Put all tkinter UI stuff in here and make them global
     Label(MainFrame,text="tournament mode").pack()
 
 def LaunchSecretMode():
     CleanRoot()
+    global CurrentMode
+
+    CurrentMode = Mode.misc
     root.attributes('-fullscreen',True)
     JumpscareCanvas = Canvas(MainFrame,width=screen_width,height=screen_height)
     JumpscareCanvas.create_image(screen_width/2,screen_height/2,image=JumpScareImage)
     JumpscareCanvas.pack()
     root.update()
-    playsound(FilePath+'/misc/scary.mp3')
+    try:
+        playsound(FilePath+'/misc/scary.mp3')
+    except:
+        print("Playsound not installed")
 
 def CleanRoot():
     for widgets in MainFrame.winfo_children():
@@ -466,10 +484,7 @@ def EvaluationBot(RoundLog,Enemy):
 
         case "CounterBot":
             return CounterBot(RoundLog,Enemy)
-
-
 #endregion
-
 
 def CheckWinner(P1,P2,PlayerLog):     
     #P1 is player 1's move, P2 is player 2's move. This function checks 
@@ -708,9 +723,10 @@ def ResetLogs():    #Resets logs (wow who wouldve thought)
     RageBot_Friendly = True
     Rage = 0
 
-    P1Score.config(text="Wins: "+str(P1ScoreValue))
-    P2Score.config(text="Wins: "+str(P2ScoreValue))
-    TieScore.config(text="Ties: "+str(TieScoreValue))
+    if CurrentMode == Mode.Standard:
+        P1Score.config(text="Wins: "+str(P1ScoreValue))
+        P2Score.config(text="Wins: "+str(P2ScoreValue))
+        TieScore.config(text="Ties: "+str(TieScoreValue))
     
 def ImageHandler(P1Move,P2Move):    #Handles what images to use depending on the player moves
     match P1Move:
