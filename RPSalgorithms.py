@@ -4,10 +4,10 @@
 #    P1 Move     |   P2 Move     |      Winner
 
 import enum, random, os, os.path, re
-#from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu, LabelFrame,NW, Toplevel
-from tkinter import *
+from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu, LabelFrame,NW, Toplevel
 from PIL import Image, ImageTk
 from playsound import playsound
+from idlelib.tooltip import Hovertip
 
 class Move(enum.Enum):
     Rock = 1
@@ -68,41 +68,6 @@ Button_RockImage = ImageTk.PhotoImage(img)
 img = Image.open(FilePath+"/Images/Jumpscare.jpg")
 img = img.resize((screen_width,screen_height))
 JumpScareImage = ImageTk.PhotoImage(img)
-
-class HoverInfo(Menu):
-    def __init__(self, parent, text, command=None):
-       self._com = command
-       Menu.__init__(self,parent, tearoff=0)
-       if not isinstance(text, str):
-          raise TypeError('Trying to initialise a Hover Menu with a non string type: ' + text.__class__.__name__)
-       toktext=re.split('\n', text)
-       for t in toktext:
-            self.add_command(label = t)
-            self._displayed=False
-            self.master.bind("<Enter>",self.Display )
-            self.master.bind("<Leave>",self.Remove )
-
-    def __del__(self):
-       self.master.unbind("<Enter>")
-       self.master.unbind("<Leave>")
-
-    def Display(self,event):
-       if not self._displayed:
-          self._displayed=True
-          self.post(event.x_root, event.y_root)
-       if self._com != None:
-          self.master.unbind_all("<Return>")
-          self.master.bind_all("<Return>", self.Click)
-
-    def Remove(self, event):
-     if self._displayed:
-       self._displayed=False
-       self.unpost()
-     if self._com != None:
-       self.unbind_all("<Return>")
-
-    def Click(self, event):
-       self._com()
 
 def LaunchStandardMode():
     root.attributes('-fullscreen',False)
@@ -960,9 +925,9 @@ def GenerateHeatmap():
         globals()[f"CanvasFrame{y}"] = Frame(MatchingFrame)
         globals()[f"CanvasFrame{y}"].grid(row=y,column=2)
         for x in range(0,len(TournamentBotList)):
-            globals()[f"MatchCanvas{x}_{y}"] = Canvas(globals()[f"CanvasFrame{y}"],width=20,height=20,background="#ff0000")
+            globals()[f"MatchCanvas{x}_{y}"] = Canvas(globals()[f"CanvasFrame{y}"],width=20,height=20,background="#6e6e6e")
             globals()[f"MatchCanvas{x}_{y}"].grid(column=x,row=1)
-            globals()[f"MatchCanvas{x}_{y}"].hover = HoverInfo(globals()[f"MatchCanvas{x}_{y}"],'P1 wins points: 0\nP2 wins points: 0\nDraw points: 0')
+            Hovertip(globals()[f"MatchCanvas{x}_{y}"],funnytexts[random.randint(0,len(funnytexts)-1)])
 
     
 def HeatmapColorHandler(wins,loses,draws):
@@ -1014,7 +979,7 @@ def StartTournament():
                 MatchMaker()
             ColorPoints = MatchesToPoints(TournamentLog)
             globals()[f"MatchCanvas{x}_{y}"].config(background=HeatmapColorHandler(ColorPoints[0],ColorPoints[1],ColorPoints[2]))
-            globals()[f"MatchCanvas{x}_{y}"].hover = HoverInfo(globals()[f"MatchCanvas{x}_{y}"],text=("P1 wins points: "+str(Wins)+"\nP2 wins points: "+str(Loses)+"\nDraw points: "+str(Draws)))
+            Hovertip(globals()[f"MatchCanvas{x}_{y}"],text=("P1 wins points: "+str(Wins)+"\nP2 wins points: "+str(Loses)+"\nDraw points: "+str(Draws)))
             TournamentLog = []
             root.update()
 
