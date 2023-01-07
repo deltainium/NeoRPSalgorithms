@@ -254,7 +254,7 @@ filemenu = Menu(menubar, tearoff=0)
 filemenu.add_command(label="Standard mode", command=LaunchStandardMode)
 filemenu.add_command(label="Tournament mode", command=LaunchTournamentMode)
 
-if random.randint(1,101) <= 100:
+if random.randint(1,101) <= 10:
     filemenu.add_command(label="Secret mode (rare)", command=LaunchSecretMode)
     print("\nSecret unlocked!")
     root.quit()
