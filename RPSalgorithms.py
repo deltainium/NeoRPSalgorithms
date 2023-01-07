@@ -524,7 +524,7 @@ def EvaluationBot(RoundLog,Enemy):
     else:                                                       #Lose, here the penatly for losing is given
         Temp_strats[PreviousStrat] = Temp_strats[PreviousStrat] * (random.randint(0,11) / 100) - 12.5
 
-    if BotInfo == True and P2Value.get() == "EvaluationBot":
+    if BotInfo == True and P2Value.get() == "EvaluationBot" and CurrentMode == Mode.Standard:
         Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem\n\n"+PreviousStrat+"\n\n"+str(Temp_strats).replace(",","\n").replace("'",""))
 
     LastMoves.append(RoundLog[len(RoundLog)-1][Enemy])
