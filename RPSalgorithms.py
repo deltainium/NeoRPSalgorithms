@@ -189,7 +189,7 @@ def LaunchTournamentMode():
     #Variables
     Label(MainInputFrame,text="Rounds per fight ").grid(row=0,column=0)
     RoundsPerFight = Entry(MainInputFrame,width="10")
-    RoundsPerFight.insert(0,"10")
+    RoundsPerFight.insert(0,"1000")
     RoundsPerFight.grid(row=0,column=1)
     Label(MainInputFrame,text="Score for winning ").grid(row=1,column=0)
     WinningPoints = Entry(MainInputFrame,width="10")
@@ -979,7 +979,7 @@ def StartTournament():
                 MatchMaker()
             ColorPoints = MatchesToPoints(TournamentLog)
             globals()[f"MatchCanvas{x}_{y}"].config(background=HeatmapColorHandler(ColorPoints[0],ColorPoints[1],ColorPoints[2]))
-            Hovertip(globals()[f"MatchCanvas{x}_{y}"],text=("P1 wins points: "+str(Wins)+"\nP2 wins points: "+str(Loses)+"\nDraw points: "+str(Draws)))
+            Hovertip(globals()[f"MatchCanvas{x}_{y}"],text=("P1 wins: "+str(Wins)+"\nP2 wins: "+str(Loses)+"\nDraws: "+str(Draws)))
             TournamentLog = []
             root.update()
 
