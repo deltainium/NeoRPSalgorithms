@@ -6,7 +6,10 @@
 import enum, random, os, os.path, re
 from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu, LabelFrame,NW, Toplevel
 from PIL import Image, ImageTk
-from playsound import playsound
+try:
+    from playsound import playsound
+except:
+    print("Playsound not installed")
 from idlelib.tooltip import Hovertip
 
 class Move(enum.Enum):
