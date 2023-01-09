@@ -977,22 +977,22 @@ def StartTournament():
     global RoundsPerFight
     Bots = len(TournamentBotList)
     Result = []
-    for y in range(0, Bots):
+    for y in range(0, Bots):    #Starts the process, this is where player 1 bot is chosen, and when all the bots have been played, the loop ends
         P1TournamentScore = 0
         P1Value.set(TournamentBotList[y])
-        for x in range(0,Bots):
+        for x in range(0,Bots):     #This is where player 2 bot is chosen and logs are reset to simulate a fresh start for the new matchup
             P2Value.set(TournamentBotList[x])
             ResetLogs()
-            for _ in range(0,int(RoundsPerFight.get())):
+            for _ in range(0,int(RoundsPerFight.get())):    #This is where the matches get played and where the logs are being made
                 MatchMaker()
-            Points = MatchesToPoints(TournamentLog)
+            Points = MatchesToPoints(TournamentLog)         
             P1TournamentScore += Points[0]
-            globals()[f"MatchCanvas{x}_{y}"].config(background=HeatmapColorHandler(Points[1][0],Points[1][1],Points[1][2]))
+            globals()[f"MatchCanvas{x}_{y}"].config(background=HeatmapColorHandler(Points[1][0],Points[1][1],Points[1][2]))     #Here the heatmap is updated
             Hovertip(globals()[f"MatchCanvas{x}_{y}"],text=("P1 wins: "+str(Wins)+"\nP2 wins: "+str(Loses)+"\nDraws: "+str(Draws)))
-            TournamentLog = []
+            TournamentLog = []  #Tournamentlog gets reset
             root.update()
-        Result.append((P1TournamentScore,P1Value.get()))
-    LeaderboardHandler(Result)
+        Result.append((P1TournamentScore,P1Value.get()))    #Results are made and the bots are sorted with their score
+    LeaderboardHandler(Result)  #Once the first loop is finished, the results are sendt to the leaderboard handler and the tournament is finished
 
 def takeFirst(elem):
     return elem[0]
