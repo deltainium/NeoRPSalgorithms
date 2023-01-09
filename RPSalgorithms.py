@@ -194,15 +194,15 @@ def LaunchTournamentMode():
     RoundsPerFight.grid(row=0,column=1)
     Label(MainInputFrame,text="Score for winning ").grid(row=1,column=0)
     WinningPoints = Entry(MainInputFrame,width="10")
-    WinningPoints.insert(0,"15")
+    WinningPoints.insert(0,"25")
     WinningPoints.grid(row=1,column=1)
     Label(MainInputFrame,text="Score for losing ").grid(row=2,column=0)
     LosingPoints = Entry(MainInputFrame,width="10")
-    LosingPoints.insert(0,"10")
+    LosingPoints.insert(0,"5")
     LosingPoints.grid(row=2,column=1)
     Label(MainInputFrame,text="Score for draw ").grid(row=3,column=0)
     DrawPoints = Entry(MainInputFrame,width="10")
-    DrawPoints.insert(0,"5")
+    DrawPoints.insert(0,"10")
     DrawPoints.grid(row=3,column=1)
 
     #Color settings
@@ -1034,16 +1034,16 @@ def LeaderboardHandler(Result):
     for i in range(0,len(Result)):
         if i == 0:      #If first place
             Label(InnerLeaderboardFrame,text=("Rank "+str(i+1)+": "+Result[i][1]),bg="#757575",fg="#FFD700").grid(row=i,column=0,sticky="e")
-            Label(InnerLeaderboardFrame,text=(" "+str(Result[i][0])),bg="#757575",fg="#FFD700").grid(row=i,column=1,sticky="w")
+            Label(InnerLeaderboardFrame,text=("| "+str(Result[i][0])),bg="#757575",fg="#FFD700").grid(row=i,column=1,sticky="w")
         elif i == 1:    #If second place
             Label(InnerLeaderboardFrame,text=("Rank "+str(i+1)+": "+Result[i][1]),bg="#757575",fg="#c0c0c0").grid(row=i,column=0,sticky="e")
-            Label(InnerLeaderboardFrame,text=(" "+str(Result[i][0])),bg="#757575",fg="#c0c0c0").grid(row=i,column=1,sticky="w")
+            Label(InnerLeaderboardFrame,text=("| "+str(Result[i][0])),bg="#757575",fg="#c0c0c0").grid(row=i,column=1,sticky="w")
         elif i == 2:    #If third place
             Label(InnerLeaderboardFrame,text=("Rank "+str(i+1)+": "+Result[i][1]),bg="#757575",fg="#CD7F32").grid(row=i,column=0,sticky="e")
-            Label(InnerLeaderboardFrame,text=(" "+str(Result[i][0])),bg="#757575",fg="#CD7F32").grid(row=i,column=1,sticky="w")
+            Label(InnerLeaderboardFrame,text=("| "+str(Result[i][0])),bg="#757575",fg="#CD7F32").grid(row=i,column=1,sticky="w")
         else:           #If anything else
             Label(InnerLeaderboardFrame,text=("Rank "+str(i+1)+": "+Result[i][1]),bg="#757575").grid(row=i,column=0,sticky="e")
-            Label(InnerLeaderboardFrame,text=(" "+str(Result[i][0])),bg="#757575").grid(row=i,column=1,sticky="w")
+            Label(InnerLeaderboardFrame,text=("| "+str(Result[i][0])),bg="#757575").grid(row=i,column=1,sticky="w")
 
 def LaunchStandardMode_Buttons():
     global Trademark
