@@ -6,7 +6,12 @@
 import enum, random, os, os.path, re
 from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu, LabelFrame,NW, Toplevel
 from PIL import Image, ImageTk
-from playsound import playsound
+PlaysoundFound = True
+try:
+    from playsound import playsound
+except:
+    print("Playsound not found")
+    PlaysoundFound = False
 from idlelib.tooltip import Hovertip
 
 class Move(enum.Enum):
@@ -244,7 +249,7 @@ filemenu = Menu(menubar, tearoff=0)
 filemenu.add_command(label="Standard mode", command=LaunchStandardMode)
 filemenu.add_command(label="Tournament mode", command=LaunchTournamentMode)
 
-if random.randint(1,101) <= 10:
+if PlaysoundFound == True and random.randint(1,101) <= 10:
     filemenu.add_command(label="Secret mode (rare)", command=LaunchSecretMode)
     print("\nSecret unlocked!")
     root.quit()
@@ -284,6 +289,9 @@ BotList = [     #Add list of bots here.
     # and once its done it keeps playing like before. The advantage to this is that the bot will 
     # more easily find the best strategy, but the downside is that the bot will use theirs first 
     # rounds to test.
+    #PredictionBot, this bot will parse the enemy moves into a string and try to find a pattern
+    # to their playstyle, after a pattern has been found, it will generate a pattern that will
+    # win against the enemy player every single move.
 ]
 
 TournamentBotList = BotList.copy()
