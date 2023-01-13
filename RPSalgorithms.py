@@ -922,6 +922,7 @@ def GenerateHeatmap():
     for y in range(0,len(TournamentBotList)):
         globals()[f"CanvasFrame{y}"] = Frame(MatchingFrame)
         globals()[f"CanvasFrame{y}"].grid(row=y,column=2)
+        root.update()
         for x in range(0,len(TournamentBotList)):
             globals()[f"MatchCanvas{x}_{y}"] = Canvas(globals()[f"CanvasFrame{y}"],width=20,height=20,background="#757575")
             globals()[f"MatchCanvas{x}_{y}"].grid(column=x,row=1)
@@ -968,6 +969,12 @@ def StartTournament():
     #Where the tourneying happens, just a big loop that changes 
     #the players to match them up and logs all the matches, then 
     #it sends these logs to other functions.
+
+    for y in range(0,len(TournamentBotList)):   #Resets color of heatmap to default
+        for x in range(0,len(TournamentBotList)):
+            globals()[f"MatchCanvas{x}_{y}"].config(bg="#757575")
+    root.update()
+
     global Player1_Tournament
     global Player2_Tournament
     global TournamentLog
@@ -992,7 +999,7 @@ def StartTournament():
             Points = MatchesToPoints(TournamentLog)         
             P1TournamentScore += Points[0]
             globals()[f"MatchCanvas{x}_{y}"].config(background=HeatmapColorHandler(Points[1][0],Points[1][1],Points[1][2]))     #Here the heatmap is updated
-            Hovertip(globals()[f"MatchCanvas{x}_{y}"],text=("P1 wins: "+str(Wins)+"\nP2 wins: "+str(Loses)+"\nDraws: "+str(Draws)))
+            Hovertip(globals()[f"MatchCanvas{x}_{y}"],text=("P1 winrate: "+str(round(100*(Wins/int(RoundsPerFight.get())),3))+"%"+"\nP2 winrate: "+str(round(100*(Loses/int(RoundsPerFight.get())),3))+"%"+"\nDraw rate: "+str(round(100*(Draws/int(RoundsPerFight.get())),3))+"%"))
             TournamentLog = []  #Tournamentlog gets reset
             root.update()
         Result.append((P1TournamentScore,P1Value.get()))    #Results are made and the bots are sorted with their score

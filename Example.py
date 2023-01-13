@@ -57,8 +57,9 @@ for i in range(0,len(BotList)):
 for y in range(0,len(BotList)):
    globals()[f"CanvasFrame{y}"] = Frame(MatchingFrame)
    globals()[f"CanvasFrame{y}"].grid(row=y,column=2)
+   root.update()
    for x in range(0,len(BotList)):
-      globals()[f"MatchCanvas{x}_{y}"] = Canvas(globals()[f"CanvasFrame{y}"],width=20,height=20,background="#ff0000")
+      globals()[f"MatchCanvas{x}_{y}"] = Canvas(globals()[f"CanvasFrame{y}"],width=20,height=20,background="#6e6e6e")
       globals()[f"MatchCanvas{x}_{y}"].grid(column=x,row=1)
 
 globals()[f"MatchCanvas1_3"].config(background="#0000ff")   #Example of how to edit a squares color
