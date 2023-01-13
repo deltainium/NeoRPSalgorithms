@@ -6,7 +6,12 @@
 import enum, random, os, os.path, re
 from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu, LabelFrame,NW, Toplevel
 from PIL import Image, ImageTk
-from playsound import playsound
+PlaysoundFound = True
+try:
+    from playsound import playsound
+except:
+    print("Playsound not found")
+    PlaysoundFound = False
 from idlelib.tooltip import Hovertip
 
 class Move(enum.Enum):
@@ -171,62 +176,52 @@ def LaunchTournamentMode():
     global CurrentMode
     global InputFramesHolder
     global RoundsPerFight
+    global ResetLogsPerFight
     global WinningPoints
     global LosingPoints
     global DrawPoints
     global Player1Color
     global Player2Color
     global DrawColor
+    global InnerLeaderboardFrame
 
     CurrentMode = Mode.Tournament
     GenerateHeatmap()
     
     InputFramesHolder = LabelFrame(MainFrame)
     MainInputFrame = LabelFrame(InputFramesHolder,text="variables")
-    ColorInputFrame = LabelFrame(InputFramesHolder,text="Color settings")
     LeaderboardFrame = LabelFrame(InputFramesHolder)
 
     #Variables
-    Label(MainInputFrame,text="Rounds per fight ").grid(row=0,column=0)
-    RoundsPerFight = Entry(MainInputFrame,width="10")
-    RoundsPerFight.insert(0,"1000")
+    Label(MainInputFrame,text="Rounds per fight ").grid(row=0,column=0,sticky="w")
+    RoundsPerFight = Entry(MainInputFrame,width="7")
+    RoundsPerFight.insert(0,"10000")
     RoundsPerFight.grid(row=0,column=1)
-    Label(MainInputFrame,text="Score for winning ").grid(row=1,column=0)
-    WinningPoints = Entry(MainInputFrame,width="10")
-    WinningPoints.insert(0,"1")
-    WinningPoints.grid(row=1,column=1)
-    Label(MainInputFrame,text="Score for losing ").grid(row=2,column=0)
-    LosingPoints = Entry(MainInputFrame,width="10")
-    LosingPoints.insert(0,"1")
-    LosingPoints.grid(row=2,column=1)
-    Label(MainInputFrame,text="Score for draw ").grid(row=3,column=0)
-    DrawPoints = Entry(MainInputFrame,width="10")
-    DrawPoints.insert(0,"1")
-    DrawPoints.grid(row=3,column=1)
-
-    #Color settings
-    Label(ColorInputFrame,text="Player 1 color ").grid(row=0,column=0)
-    Player1Color = Entry(ColorInputFrame,width="13")
-    Player1Color.insert(0,"#ff0000")
-    Player1Color.grid(row=0,column=1)
-    Label(ColorInputFrame,text="Player 2 color ").grid(row=1,column=0)
-    Player2Color = Entry(ColorInputFrame,width="13")
-    Player2Color.insert(0,"#0000ff")
-    Player2Color.grid(row=1,column=1)
-    Label(ColorInputFrame,text="Draw color     ").grid(row=2,column=0)
-    DrawColor = Entry(ColorInputFrame,width="13")
-    DrawColor.insert(0,"#00ff00")
-    DrawColor.grid(row=2,column=1)
+    Label(MainInputFrame,text="Reset after 'n' matches: ").grid(row=1,column=0,sticky="w")
+    ResetLogsPerFight = Entry(MainInputFrame,width="7")
+    ResetLogsPerFight.insert(0,"100")
+    ResetLogsPerFight.grid(row=1,column=1)
+    Label(MainInputFrame,text="Score for winning ").grid(row=2,column=0,sticky="w")
+    WinningPoints = Entry(MainInputFrame,width="7")
+    WinningPoints.insert(0,"25")
+    WinningPoints.grid(row=2,column=1)
+    Label(MainInputFrame,text="Score for losing ").grid(row=3,column=0,sticky="w")
+    LosingPoints = Entry(MainInputFrame,width="7")
+    LosingPoints.insert(0,"5")
+    LosingPoints.grid(row=3,column=1)
+    Label(MainInputFrame,text="Score for draw ").grid(row=4,column=0,sticky="w")
+    DrawPoints = Entry(MainInputFrame,width="7")
+    DrawPoints.insert(0,"10")
+    DrawPoints.grid(row=4,column=1)
 
     #Leaderboard
     Label(LeaderboardFrame,text="Leaderboard",padx=45).grid(row=0,column=0)
-    InnerLeaderboardFrame = Frame(LeaderboardFrame)
+    InnerLeaderboardFrame = LabelFrame(LeaderboardFrame,bg="#757575")
+    Label(InnerLeaderboardFrame,text="Start a tournament\nto see leaderboard",bg="#757575").grid(row=0,column=0)
     InnerLeaderboardFrame.grid(row=1,column=0)
-    Label(InnerLeaderboardFrame,text="FIX LATER").grid(row=0,column=0)
 
     InputFramesHolder.grid(row=0,column=1)
     MainInputFrame.grid(row=0,column=0,padx=20,pady=10)
-    ColorInputFrame.grid(row=1,column=0)
     LeaderboardFrame.grid(row=2,column=0,padx=20,pady=10)
     LaunchTournamentMode_Buttons()
 
@@ -254,7 +249,7 @@ filemenu = Menu(menubar, tearoff=0)
 filemenu.add_command(label="Standard mode", command=LaunchStandardMode)
 filemenu.add_command(label="Tournament mode", command=LaunchTournamentMode)
 
-if random.randint(1,101) <= 100:
+if PlaysoundFound == True and random.randint(1,101) <= 10:
     filemenu.add_command(label="Secret mode (rare)", command=LaunchSecretMode)
     print("\nSecret unlocked!")
     root.quit()
@@ -294,6 +289,9 @@ BotList = [     #Add list of bots here.
     # and once its done it keeps playing like before. The advantage to this is that the bot will 
     # more easily find the best strategy, but the downside is that the bot will use theirs first 
     # rounds to test.
+    #PredictionBot, this bot will parse the enemy moves into a string and try to find a pattern
+    # to their playstyle, after a pattern has been found, it will generate a pattern that will
+    # win against the enemy player every single move.
 ]
 
 TournamentBotList = BotList.copy()
@@ -925,15 +923,17 @@ def GenerateHeatmap():
         globals()[f"CanvasFrame{y}"] = Frame(MatchingFrame)
         globals()[f"CanvasFrame{y}"].grid(row=y,column=2)
         for x in range(0,len(TournamentBotList)):
-            globals()[f"MatchCanvas{x}_{y}"] = Canvas(globals()[f"CanvasFrame{y}"],width=20,height=20,background="#6e6e6e")
+            globals()[f"MatchCanvas{x}_{y}"] = Canvas(globals()[f"CanvasFrame{y}"],width=20,height=20,background="#757575")
             globals()[f"MatchCanvas{x}_{y}"].grid(column=x,row=1)
             Hovertip(globals()[f"MatchCanvas{x}_{y}"],funnytexts[random.randint(0,len(funnytexts)-1)])
 
     
-def HeatmapColorHandler(wins,loses,draws):
-    #globals()[f"MatchCanvas1_3"].config(background="0000ff")   #Example of how to change color of specific square
-    r = wins * 255
-    b = loses * 255
+def HeatmapColorHandler(P1,P2,draws):
+    #The heatmap is only affected to a certain degree, it cannot be amplified, 
+    #since it shows the win rate of player 1 and 2, points do not matter, 
+    #only winning or losing does.
+    r = P1 * 255
+    b = P2 * 255
     g = draws * 255
 
     if r < 0:
@@ -964,42 +964,91 @@ def HeatmapColorHandler(wins,loses,draws):
 
     return "#"+r+g+b
 
-def StartTournament():
+def StartTournament():      
+    #Where the tourneying happens, just a big loop that changes 
+    #the players to match them up and logs all the matches, then 
+    #it sends these logs to other functions.
     global Player1_Tournament
     global Player2_Tournament
     global TournamentLog
     global RoundsPerFight
+    global ResetLogsPerFight
+    Reset = True
+    if ResetLogsPerFight.get() == "0":
+        Reset = False
+
     Bots = len(TournamentBotList)
-    for y in range(0, Bots):
+    Result = []
+    for y in range(0, Bots):    #Starts the process, this is where player 1 bot is chosen, and when all the bots have been played, the loop ends
+        P1TournamentScore = 0
         P1Value.set(TournamentBotList[y])
-        for x in range(0,Bots):
+        for x in range(0,Bots):     #This is where player 2 bot is chosen and logs are reset to simulate a fresh start for the new matchup
             P2Value.set(TournamentBotList[x])
             ResetLogs()
-            for _ in range(0,int(RoundsPerFight.get())):
+            for i in range(0,int(RoundsPerFight.get())):    #This is where the matches get played and where the logs are being made
+                if Reset == True and i % int(ResetLogsPerFight.get()) == 0:
+                    ResetLogs()
                 MatchMaker()
-            ColorPoints = MatchesToPoints(TournamentLog)
-            globals()[f"MatchCanvas{x}_{y}"].config(background=HeatmapColorHandler(ColorPoints[0],ColorPoints[1],ColorPoints[2]))
+            Points = MatchesToPoints(TournamentLog)         
+            P1TournamentScore += Points[0]
+            globals()[f"MatchCanvas{x}_{y}"].config(background=HeatmapColorHandler(Points[1][0],Points[1][1],Points[1][2]))     #Here the heatmap is updated
             Hovertip(globals()[f"MatchCanvas{x}_{y}"],text=("P1 wins: "+str(Wins)+"\nP2 wins: "+str(Loses)+"\nDraws: "+str(Draws)))
-            TournamentLog = []
+            TournamentLog = []  #Tournamentlog gets reset
             root.update()
+        Result.append((P1TournamentScore,P1Value.get()))    #Results are made and the bots are sorted with their score
+        LeaderboardHandler(Result)  #Once the first loop is finished, the results are sendt to the leaderboard handler and the tournament is finished
 
-def MatchesToPoints(Matches):
+
+def takeFirst(elem):
+    return elem[0]
+
+def MatchesToPoints(Matches):   
+    #Translates the matches of the games 
+    #into points and wins and returns them
     global Wins
     global Loses
     global Draws
     Wins = 0
     Loses = 0
     Draws = 0
-    for i in range(0,len(Matches)):
+    WinsPoints = 0
+    LosesPoints = 0
+    Draws_Points = 0
+    TotalMatches = len(Matches)
+
+    for i in range(0,TotalMatches):
         match Matches[i][2]:
             case Outcomes.P1:
-                Wins += int(WinningPoints.get())
+                WinsPoints += int(WinningPoints.get())
+                Wins += 1
             case Outcomes.P2:
-                Loses += int(LosingPoints.get())
+                LosesPoints += int(LosingPoints.get())
+                Loses += 1
             case Outcomes.Tie:
-                Draws += int(DrawPoints.get())
-    return Wins/(0.000001+len(Matches)*int(WinningPoints.get())),Loses/(0.000001+len(Matches)*int(LosingPoints.get())),+Draws/(0.000001+len(Matches)*int(DrawPoints.get()))
+                Draws_Points += int(DrawPoints.get())
+                Draws += 1
+    return WinsPoints + LosesPoints + Draws_Points,(Wins/TotalMatches,Loses/TotalMatches,Draws/TotalMatches)
 
+def LeaderboardHandler(Result):     
+    #Handles sorting the results and displaying the leaderboard
+    global InnerLeaderboardFrame
+    for widget in InnerLeaderboardFrame.winfo_children():
+        widget.destroy()
+
+    Result.sort(key=takeFirst,reverse=True)
+    for i in range(0,len(Result)):
+        if i == 0:      #If first place
+            Label(InnerLeaderboardFrame,text=("Rank "+str(i+1)+": "+Result[i][1]),bg="#757575",fg="#FFD700").grid(row=i,column=0,sticky="e")
+            Label(InnerLeaderboardFrame,text=("| "+str(Result[i][0])),bg="#757575",fg="#FFD700").grid(row=i,column=1,sticky="w")
+        elif i == 1:    #If second place
+            Label(InnerLeaderboardFrame,text=("Rank "+str(i+1)+": "+Result[i][1]),bg="#757575",fg="#c0c0c0").grid(row=i,column=0,sticky="e")
+            Label(InnerLeaderboardFrame,text=("| "+str(Result[i][0])),bg="#757575",fg="#c0c0c0").grid(row=i,column=1,sticky="w")
+        elif i == 2:    #If third place
+            Label(InnerLeaderboardFrame,text=("Rank "+str(i+1)+": "+Result[i][1]),bg="#757575",fg="#CD7F32").grid(row=i,column=0,sticky="e")
+            Label(InnerLeaderboardFrame,text=("| "+str(Result[i][0])),bg="#757575",fg="#CD7F32").grid(row=i,column=1,sticky="w")
+        else:           #If anything else
+            Label(InnerLeaderboardFrame,text=("Rank "+str(i+1)+": "+Result[i][1]),bg="#757575").grid(row=i,column=0,sticky="e")
+            Label(InnerLeaderboardFrame,text=("| "+str(Result[i][0])),bg="#757575").grid(row=i,column=1,sticky="w")
 
 def LaunchStandardMode_Buttons():
     global Trademark
