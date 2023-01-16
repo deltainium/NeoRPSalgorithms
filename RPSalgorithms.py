@@ -195,9 +195,9 @@ def LaunchTournamentMode():
     #Variables
     Label(MainInputFrame,text="Rounds per fight ").grid(row=0,column=0,sticky="w")
     RoundsPerFight = Entry(MainInputFrame,width="7")
-    RoundsPerFight.insert(0,"10000")
+    RoundsPerFight.insert(0,"5000")
     RoundsPerFight.grid(row=0,column=1)
-    Label(MainInputFrame,text="Reset after 'n' matches: ").grid(row=1,column=0,sticky="w")
+    Label(MainInputFrame,text="Reset logs after 'n' matches: ").grid(row=1,column=0,sticky="w")
     ResetLogsPerFight = Entry(MainInputFrame,width="7")
     ResetLogsPerFight.insert(0,"100")
     ResetLogsPerFight.grid(row=1,column=1)
@@ -215,7 +215,7 @@ def LaunchTournamentMode():
     DrawPoints.grid(row=4,column=1)
 
     #Leaderboard
-    Label(LeaderboardFrame,text="Leaderboard",padx=45).grid(row=0,column=0)
+    Label(LeaderboardFrame,text="Leaderboard",padx=66).grid(row=0,column=0)
     InnerLeaderboardFrame = LabelFrame(LeaderboardFrame,bg="#757575")
     Label(InnerLeaderboardFrame,text="Start a tournament\nto see leaderboard",bg="#757575").grid(row=0,column=0)
     InnerLeaderboardFrame.grid(row=1,column=0)
@@ -1064,8 +1064,6 @@ def LaunchStandardMode_Buttons():
     AutoFight_InfoFrame.pack(side=TOP)
     ResetButton = Button(InfoFrame,text="Reset logs",command=ResetLogs)
     ResetButton.pack(side=LEFT)
-    Trademark = Button(InfoFrame,text=TrademarkText,command=RerollTrademark,bd=0)
-    Trademark.pack(side=RIGHT)
 
 def LaunchTournamentMode_Buttons():
     StartButton = Button(InputFramesHolder,text="Start\ntournament!",command=StartTournament,padx=35,pady=10)
@@ -1076,7 +1074,8 @@ def RerollTrademark():
     #(the funny text in the right corner) will reroll the text
     global BotInfo
     BotInfo = True
-    Player2ListUpdate(P2Value.get())
+    if CurrentMode == Mode.Standard:
+        Player2ListUpdate(P2Value.get())
 
     global TrademarkText
     NewTrademarkText = funnytexts[random.randint(0,len(funnytexts)-1)]
@@ -1094,6 +1093,8 @@ def RerollTrademark():
 
 
 MainFrame.pack()
+Trademark = Button(root,text=TrademarkText,command=RerollTrademark,bd=0)
+Trademark.pack(side=RIGHT)
 LaunchStandardMode()
 Player1ListUpdate(P1Value.get())
 
