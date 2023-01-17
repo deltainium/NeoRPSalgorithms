@@ -273,14 +273,17 @@ TieScoreValue = 0
 IsAutoFighting = False
 
 BotList = [     #Add list of bots here.
+    #Stupid bots
     "RandomBot",
     "HumanBot",
     "RockBot",
     "PaperBot",
     "ScissorsBot",
+    #Counter intuitive bots
     "CopyBot",
-    "BeatLastBot",
     "GenerousBot",
+    #good bots
+    "BeatLastBot",
     "CounterBot",
     "RageBot",
     "EvaluationBot"
@@ -303,7 +306,11 @@ def Introspection(BotName):
     #(Why his opponent? Because thats what we actually want to know)
     global Duo
 
-    if Duo == True:     #Duo checks if both players are the same, if they are the same it will return 0 and turn a boolean true so that when the next bot does introspection, they will be returned 1 instantly
+    #Duo checks if both players are the same, if they are the same 
+    #it will return 0 and turn a boolean true so that when the next 
+    #bot does introspection, who will be the copy, they will be 
+    #returned 1 instantly
+    if Duo == True:
         return 0
 
     if P1Value.get() == P2Value.get():
@@ -314,7 +321,7 @@ def Introspection(BotName):
     elif P2Value.get() == BotName:
         return 0
     else:
-        print("Error: Bot is having an existencial crisis! Who is bot???")
+        print("!! Error: Bot is having an existencial crisis! Who is bot??? !!")
         print("P1: "+P1Value.get()," | P2: "+P2Value.get()," | BotName: "+BotName," | Duo: ",Duo)  #Debugging, incase någe går kalt med introspection, så hjelpe det å vita dette.
 
 #region | Player (bot) Algorithms
@@ -487,7 +494,7 @@ def ImpossibleBot():
 
 PreviousStrat = "RandomBot"
 strats = {"RandomBot": -5, "CopyBot": 0, "BeatLastBot": 0, "GenerousBot": 0, "CounterBot": 0,}
-Duo_strats = {"RandomBot": -5, "CopyBot": 0, "BeatLastBot": 0, "GenerousBot": 0, "CounterBot": 0,}
+Duo_strats = strats.copy()
 
 def EvaluationBot(RoundLog,Enemy):
     #Has a multitude of different bots it can choose from, 
@@ -556,6 +563,9 @@ def CheckWinner(P1,P2,PlayerLog):
     global P2ScoreValue
     global TieScoreValue
     
+    if IsAutoFighting == False and CurrentMode == Mode.Standard:
+        ImageHandler(P1,P2)
+
     if CurrentMode == Mode.Standard:
         if len(PlayerLog) > 1 and PlayerLog[len(PlayerLog)-2] == PlayerLog[len(PlayerLog)-1]:
             pass
@@ -567,8 +577,6 @@ def CheckWinner(P1,P2,PlayerLog):
             P2Score.config(text=("Wins: "+str(P2ScoreValue)))
             TieScore.config(text=("Ties: "+str(TieScoreValue)))
         
-    if IsAutoFighting == False and CurrentMode == Mode.Standard:
-        ImageHandler(P1,P2)
 
     #Checks for tie, this is done first because it is cheap to check and if 
     #the result is a tie then we wont need to check any win conditions, 
@@ -993,7 +1001,7 @@ def StartTournament():
             P2Value.set(TournamentBotList[x])
             ResetLogs()
             for i in range(0,int(RoundsPerFight.get())):    #This is where the matches get played and where the logs are being made
-                if Reset == True and i % int(ResetLogsPerFight.get()) == 0:
+                if Reset == True and i % int(ResetLogsPerFight.get()) == 0: #This is where the logs are reset, if i is divisble by the Reset logs per fight number, the logs are reset, could be improved
                     ResetLogs()
                 MatchMaker()
             Points = MatchesToPoints(TournamentLog)         
