@@ -286,15 +286,16 @@ BotList = [     #Add list of bots here.
     "BeatLastBot",
     "CounterBot",
     "RageBot",
-    "EvaluationBot"
+    "EvaluationBot",
+    "PredictionBotWIP",# this bot will parse the enemy moves into a string and try to find a pattern
+    # to their playstyle, after a pattern has been found, it will generate a pattern that will
+    # win against the enemy player every single move.
+
     #TesterBot, this bot works like EvaluationBot, 
     # but before he uses the first rounds to test every of his strategies 'n' amount of times, 
     # and once its done it keeps playing like before. The advantage to this is that the bot will 
     # more easily find the best strategy, but the downside is that the bot will use theirs first 
     # rounds to test.
-    #PredictionBot, this bot will parse the enemy moves into a string and try to find a pattern
-    # to their playstyle, after a pattern has been found, it will generate a pattern that will
-    # win against the enemy player every single move.
 ]
 
 TournamentBotList = BotList.copy()
@@ -507,13 +508,14 @@ def EvaluationBot(RoundLog,Enemy):
     global BotInfo
     global LastMoves
 
+    if Enemy is None:
+        Enemy = Introspection("EvaluationBot")
+
     if Duo == True:
         Temp_strats = Duo_strats
     else:
         Temp_strats = strats
 
-    if Enemy is None:
-        Enemy = Introspection("EvaluationBot")
 
     if Enemy == 0:  #Translate the enemy type (Integer) to Outcomes so that we can use it to see who won the previous match
         Enemy_outcome = Outcomes.P2
@@ -552,6 +554,30 @@ def EvaluationBot(RoundLog,Enemy):
 
         case "CounterBot":
             return CounterBot(RoundLog,Enemy)
+
+StringLog = ""
+def PredictionBot(RoundLog,Enemy):
+    global StringLog
+
+    if Enemy is None:
+        Enemy = Introspection("PredictionBotWIP")
+
+    match RoundLog[len(RoundLog)-1][Enemy]:
+        case Move.Rock:
+            StringLog += "R"
+        case Move.Paper:
+            StringLog += "P"
+        case Move.Scissors:
+            StringLog += "S"
+
+    print(StringLog)
+
+    #0. Will play a pattern at start, 1. rock, 2. paper, 3. scissors then repeat until a enemy pattern is found
+    #1. If the same move has been played three times, play the winning move until loss, if a draw or loss is detected, never attempt again
+    #2. If the enemy move plays the same pattern twice generate a pattern that will win against the enemy pattern, 
+    #   this pattern must try to predict what the enemy will play in response to losing. Using metastrategies can help here.
+
+    return RandomBot()
 #endregion
 
 def CheckWinner(P1,P2,PlayerLog):     
@@ -679,6 +705,13 @@ def MatchMaker():
             else:
                 P1 = EvaluationBot(RoundLog,Enemy)
             P1Bot = "EvaluationBot"
+            
+        case "PredictionBotWIP":
+            if len(RoundLog) == 0:
+                P1 = RandomBot()
+            else:
+                P1 = PredictionBot(RoundLog,Enemy)
+            P1Bot = "PredictionBotWIP"
 
         
     #Makes the bot chosen on the list of bots into the player for player 2
@@ -744,6 +777,13 @@ def MatchMaker():
             else:
                 P2 = EvaluationBot(RoundLog,Enemy)
             P2Bot = "EvaluationBot"
+
+        case "PredictionBotWIP":
+            if len(RoundLog) == 0:
+                P2 = RandomBot()
+            else:
+                P2 = PredictionBot(RoundLog,Enemy)
+            P2Bot = "PredictionBotWIP"
 
     PlayerLog.append((P1Bot,P2Bot))
     RoundLog.append(CheckWinner(P1,P2,PlayerLog))
@@ -891,7 +931,10 @@ def Player2ListUpdate(Player):
                 Player2BotLabel.config(text="Does not lose\n\nOnly works against\nHumanBot!")
 
             case "EvaluationBot":
-                Player2BotLabel.config(text=Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem"))
+                Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem")
+
+            case "PredictionBotWIP":
+                Player2BotLabel.config(text="this bot will parse\nthe enemy moves\ninto a string and\ntry to find a\npattern to their\nplaystyle.\n\nAfter a pattern has been\nfound, it will attempt\nto generate a\npattern that will win\nagainst the enemy\nplayer every single\nmove.")
 
     else:
         match Player:
