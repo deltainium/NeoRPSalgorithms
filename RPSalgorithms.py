@@ -296,6 +296,7 @@ BotList = [     #Add list of bots here.
 
 TournamentBotList = BotList.copy()
 TournamentBotList.remove("HumanBot")
+TournamentBotList.remove("PredictionBotWIP")
 
 def Introspection(BotName):
     #You must know yourself to know your enemy. Figures out who the bot 
@@ -779,8 +780,11 @@ def ResetLogs():    #Resets logs (wow who wouldve thought)
     global Rage
 
     global strats
+    global Duo_strats
 
     strats = {"RandomBot": -5, "CopyBot": 0, "BeatLastBot": 0, "GenerousBot": 0, "CounterBot": 0,}
+    Duo_strats = strats.copy()
+
 
     RockMoves_CountBot = 0
     PaperMoves_CountBot = 0
