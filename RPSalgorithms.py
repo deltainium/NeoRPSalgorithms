@@ -28,7 +28,6 @@ class Mode(enum.Enum):
     Standard = 1
     Tournament = 2
     ClassicTournament = 3
-    misc = 4
 
 #region Tkinter interface shenanigans
 root = Tk()
@@ -40,11 +39,13 @@ MainFrame = Frame(root)
 CurrentMode = Mode.Standard
 
 #Image shenanigans
+#IMAGE SETTINGS !!! <- -
+Imagesize = 400     #Image size, i think its pixel length, the image is a square, so all sides are equal length.
+
 #Get the current screen width and height
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 
-Imagesize = 400     #Image size, i think its pixel length, the image is a square, so all sides are equal length.
 FilePath = os.path.dirname(__file__)   #finds file location and saves it as path
 FilePath = FilePath.replace("\\","/")
 
