@@ -963,16 +963,16 @@ def GenerateHeatmap():
         CanvasHeight = TextSpread+i*TextSpread
     CanvasWidth = 100
 
-    canvas_1_manage = Canvas(HeatMapFrame,height=CanvasWidth,width=CanvasHeight)
-    canvas_1_manage.grid(row = 0, column = 1)
-    canvas_2_manage = Canvas(HeatMapFrame,width=CanvasWidth,height=CanvasHeight)
-    canvas_2_manage.grid(row = 1, column = 0)
+    P1ListCanvas = Canvas(HeatMapFrame,height=CanvasWidth,width=CanvasHeight)
+    P1ListCanvas.grid(row = 0, column = 1)
+    P2ListCanvas = Canvas(HeatMapFrame,width=CanvasWidth,height=CanvasHeight)
+    P2ListCanvas.grid(row = 1, column = 0)
 
     for i in range(0,len(TournamentBotList)):
-        canvas_2_manage.create_text(CanvasWidth,1+TextSpread/2+i*TextSpread, text = TournamentBotList[i], anchor = "e")
+        P2ListCanvas.create_text(CanvasWidth,1+TextSpread/2+i*TextSpread, text = TournamentBotList[i], anchor = "e")
 
     for i in range(0,len(TournamentBotList)):
-        canvas_1_manage.create_text(TextSpread/2+i*TextSpread, CanvasWidth, text = TournamentBotList[i], angle = 90, anchor = "w")
+        P1ListCanvas.create_text(TextSpread/2+i*TextSpread, CanvasWidth, text = TournamentBotList[i], angle = 90, anchor = "w")
 
 
     for y in range(0,len(TournamentBotList)):
