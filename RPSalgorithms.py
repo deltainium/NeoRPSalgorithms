@@ -3,8 +3,8 @@
 #       ^               ^                 ^
 #    P1 Move     |   P2 Move     |      Winner
 
-import enum, random, os, os.path, re
-from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu, LabelFrame,NW, Toplevel
+import enum, random, os, os.path
+from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu, LabelFrame
 from PIL import Image, ImageTk
 PlaysoundFound = True
 try:
@@ -502,7 +502,7 @@ Duo_strats = strats.copy()
 def EvaluationBot(RoundLog,Enemy):
     #Has a multitude of different bots it can choose from, 
     #and picks the one that it believes has the highest odds 
-    # of winning based off a scoring system
+    #of winning based off a scoring system
     global PreviousStrat
     global strats
     global Duo
@@ -1129,8 +1129,8 @@ def RerollTrademark():
     #Is for easteregg, clicking the Trademark 
     #(the funny text in the right corner) will reroll the text
     global BotInfo
-    BotInfo = True
     if CurrentMode == Mode.Standard:
+        BotInfo = True
         Player2ListUpdate(P2Value.get())
 
     global TrademarkText
