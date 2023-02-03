@@ -28,6 +28,7 @@ class Mode(enum.Enum):
     Standard = 1
     Tournament = 2
     ClassicTournament = 3
+    Secret = 4
 
 #region Tkinter interface shenanigans
 root = Tk()
@@ -230,7 +231,7 @@ def LaunchSecretMode():
     CleanRoot()
     global CurrentMode
 
-    CurrentMode = Mode.misc
+    CurrentMode = Mode.Secret
     root.attributes('-fullscreen',True)
     JumpscareCanvas = Canvas(MainFrame,width=screen_width,height=screen_height)
     JumpscareCanvas.create_image(screen_width/2,screen_height/2,image=JumpScareImage)
