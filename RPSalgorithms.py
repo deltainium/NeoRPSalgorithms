@@ -3,8 +3,8 @@
 #       ^               ^                 ^
 #    P1 Move     |   P2 Move     |      Winner
 
-import enum, random, os, os.path, re
-from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu, LabelFrame,NW, Toplevel
+import enum, random, os, os.path
+from tkinter import Tk,Frame,Label,Button,Canvas,OptionMenu,LEFT,RIGHT,TOP,BOTTOM,StringVar,IntVar,Checkbutton,Entry, Menu, LabelFrame
 from PIL import Image, ImageTk
 PlaysoundFound = True
 try:
@@ -28,7 +28,7 @@ class Mode(enum.Enum):
     Standard = 1
     Tournament = 2
     ClassicTournament = 3
-    misc = 4
+    Secret = 4
 
 #region Tkinter interface shenanigans
 root = Tk()
@@ -40,11 +40,13 @@ MainFrame = Frame(root)
 CurrentMode = Mode.Standard
 
 #Image shenanigans
+#IMAGE SETTINGS !!! <- -
+Imagesize = 400     #Image size, i think its pixel length, the image is a square, so all sides are equal length.
+
 #Get the current screen width and height
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 
-Imagesize = 400     #Image size, i think its pixel length, the image is a square, so all sides are equal length.
 FilePath = os.path.dirname(__file__)   #finds file location and saves it as path
 FilePath = FilePath.replace("\\","/")
 
@@ -195,9 +197,9 @@ def LaunchTournamentMode():
     #Variables
     Label(MainInputFrame,text="Rounds per fight ").grid(row=0,column=0,sticky="w")
     RoundsPerFight = Entry(MainInputFrame,width="7")
-    RoundsPerFight.insert(0,"10000")
+    RoundsPerFight.insert(0,"5000")
     RoundsPerFight.grid(row=0,column=1)
-    Label(MainInputFrame,text="Reset after 'n' matches: ").grid(row=1,column=0,sticky="w")
+    Label(MainInputFrame,text="Reset logs after 'n' matches: ").grid(row=1,column=0,sticky="w")
     ResetLogsPerFight = Entry(MainInputFrame,width="7")
     ResetLogsPerFight.insert(0,"100")
     ResetLogsPerFight.grid(row=1,column=1)
@@ -215,7 +217,7 @@ def LaunchTournamentMode():
     DrawPoints.grid(row=4,column=1)
 
     #Leaderboard
-    Label(LeaderboardFrame,text="Leaderboard",padx=45).grid(row=0,column=0)
+    Label(LeaderboardFrame,text="Leaderboard",padx=66).grid(row=0,column=0)
     InnerLeaderboardFrame = LabelFrame(LeaderboardFrame,bg="#757575")
     Label(InnerLeaderboardFrame,text="Start a tournament\nto see leaderboard",bg="#757575").grid(row=0,column=0)
     InnerLeaderboardFrame.grid(row=1,column=0)
@@ -229,7 +231,7 @@ def LaunchSecretMode():
     CleanRoot()
     global CurrentMode
 
-    CurrentMode = Mode.misc
+    CurrentMode = Mode.Secret
     root.attributes('-fullscreen',True)
     JumpscareCanvas = Canvas(MainFrame,width=screen_width,height=screen_height)
     JumpscareCanvas.create_image(screen_width/2,screen_height/2,image=JumpScareImage)
@@ -273,29 +275,34 @@ TieScoreValue = 0
 IsAutoFighting = False
 
 BotList = [     #Add list of bots here.
+    #Stupid bots
     "RandomBot",
     "HumanBot",
     "RockBot",
     "PaperBot",
     "ScissorsBot",
+    #Counter intuitive bots
     "CopyBot",
-    "BeatLastBot",
     "GenerousBot",
+    #good bots
+    "BeatLastBot",
     "CounterBot",
     "RageBot",
-    "EvaluationBot"
+    "EvaluationBot",
+    "PredictionBotWIP",# this bot will parse the enemy moves into a string and try to find a pattern
+    # to their playstyle, after a pattern has been found, it will generate a pattern that will
+    # win against the enemy player every single move.
+
     #TesterBot, this bot works like EvaluationBot, 
     # but before he uses the first rounds to test every of his strategies 'n' amount of times, 
     # and once its done it keeps playing like before. The advantage to this is that the bot will 
     # more easily find the best strategy, but the downside is that the bot will use theirs first 
     # rounds to test.
-    #PredictionBot, this bot will parse the enemy moves into a string and try to find a pattern
-    # to their playstyle, after a pattern has been found, it will generate a pattern that will
-    # win against the enemy player every single move.
 ]
 
 TournamentBotList = BotList.copy()
 TournamentBotList.remove("HumanBot")
+TournamentBotList.remove("PredictionBotWIP")
 
 def Introspection(BotName):
     #You must know yourself to know your enemy. Figures out who the bot 
@@ -303,7 +310,11 @@ def Introspection(BotName):
     #(Why his opponent? Because thats what we actually want to know)
     global Duo
 
-    if Duo == True:     #Duo checks if both players are the same, if they are the same it will return 0 and turn a boolean true so that when the next bot does introspection, they will be returned 1 instantly
+    #Duo checks if both players are the same, if they are the same 
+    #it will return 0 and turn a boolean true so that when the next 
+    #bot does introspection, who will be the copy, they will be 
+    #returned 1 instantly
+    if Duo == True:
         return 0
 
     if P1Value.get() == P2Value.get():
@@ -314,7 +325,7 @@ def Introspection(BotName):
     elif P2Value.get() == BotName:
         return 0
     else:
-        print("Error: Bot is having an existencial crisis! Who is bot???")
+        print("!! Error: Bot is having an existencial crisis! Who is bot??? !!")
         print("P1: "+P1Value.get()," | P2: "+P2Value.get()," | BotName: "+BotName," | Duo: ",Duo)  #Debugging, incase någe går kalt med introspection, så hjelpe det å vita dette.
 
 #region | Player (bot) Algorithms
@@ -487,12 +498,12 @@ def ImpossibleBot():
 
 PreviousStrat = "RandomBot"
 strats = {"RandomBot": -5, "CopyBot": 0, "BeatLastBot": 0, "GenerousBot": 0, "CounterBot": 0,}
-Duo_strats = {"RandomBot": -5, "CopyBot": 0, "BeatLastBot": 0, "GenerousBot": 0, "CounterBot": 0,}
+Duo_strats = strats.copy()
 
 def EvaluationBot(RoundLog,Enemy):
     #Has a multitude of different bots it can choose from, 
     #and picks the one that it believes has the highest odds 
-    # of winning based off a scoring system
+    #of winning based off a scoring system
     global PreviousStrat
     global strats
     global Duo
@@ -500,13 +511,14 @@ def EvaluationBot(RoundLog,Enemy):
     global BotInfo
     global LastMoves
 
+    if Enemy is None:
+        Enemy = Introspection("EvaluationBot")
+
     if Duo == True:
         Temp_strats = Duo_strats
     else:
         Temp_strats = strats
 
-    if Enemy is None:
-        Enemy = Introspection("EvaluationBot")
 
     if Enemy == 0:  #Translate the enemy type (Integer) to Outcomes so that we can use it to see who won the previous match
         Enemy_outcome = Outcomes.P2
@@ -545,6 +557,30 @@ def EvaluationBot(RoundLog,Enemy):
 
         case "CounterBot":
             return CounterBot(RoundLog,Enemy)
+
+StringLog = ""
+def PredictionBot(RoundLog,Enemy):
+    global StringLog
+
+    if Enemy is None:
+        Enemy = Introspection("PredictionBotWIP")
+
+    match RoundLog[len(RoundLog)-1][Enemy]:
+        case Move.Rock:
+            StringLog += "R"
+        case Move.Paper:
+            StringLog += "P"
+        case Move.Scissors:
+            StringLog += "S"
+
+    print(StringLog)
+
+    #0. Will play a pattern at start, 1. rock, 2. paper, 3. scissors then repeat until a enemy pattern is found
+    #1. If the same move has been played three times, play the winning move until loss, if a draw or loss is detected, never attempt again
+    #2. If the enemy move plays the same pattern twice generate a pattern that will win against the enemy pattern, 
+    #   this pattern must try to predict what the enemy will play in response to losing. Using metastrategies can help here.
+
+    return RandomBot()
 #endregion
 
 def CheckWinner(P1,P2,PlayerLog):     
@@ -556,6 +592,9 @@ def CheckWinner(P1,P2,PlayerLog):
     global P2ScoreValue
     global TieScoreValue
     
+    if IsAutoFighting == False and CurrentMode == Mode.Standard:
+        ImageHandler(P1,P2)
+
     if CurrentMode == Mode.Standard:
         if len(PlayerLog) > 1 and PlayerLog[len(PlayerLog)-2] == PlayerLog[len(PlayerLog)-1]:
             pass
@@ -567,8 +606,6 @@ def CheckWinner(P1,P2,PlayerLog):
             P2Score.config(text=("Wins: "+str(P2ScoreValue)))
             TieScore.config(text=("Ties: "+str(TieScoreValue)))
         
-    if IsAutoFighting == False and CurrentMode == Mode.Standard:
-        ImageHandler(P1,P2)
 
     #Checks for tie, this is done first because it is cheap to check and if 
     #the result is a tie then we wont need to check any win conditions, 
@@ -671,6 +708,13 @@ def MatchMaker():
             else:
                 P1 = EvaluationBot(RoundLog,Enemy)
             P1Bot = "EvaluationBot"
+            
+        case "PredictionBotWIP":
+            if len(RoundLog) == 0:
+                P1 = RandomBot()
+            else:
+                P1 = PredictionBot(RoundLog,Enemy)
+            P1Bot = "PredictionBotWIP"
 
         
     #Makes the bot chosen on the list of bots into the player for player 2
@@ -737,6 +781,13 @@ def MatchMaker():
                 P2 = EvaluationBot(RoundLog,Enemy)
             P2Bot = "EvaluationBot"
 
+        case "PredictionBotWIP":
+            if len(RoundLog) == 0:
+                P2 = RandomBot()
+            else:
+                P2 = PredictionBot(RoundLog,Enemy)
+            P2Bot = "PredictionBotWIP"
+
     PlayerLog.append((P1Bot,P2Bot))
     RoundLog.append(CheckWinner(P1,P2,PlayerLog))
 
@@ -779,8 +830,11 @@ def ResetLogs():    #Resets logs (wow who wouldve thought)
     global Rage
 
     global strats
+    global Duo_strats
 
     strats = {"RandomBot": -5, "CopyBot": 0, "BeatLastBot": 0, "GenerousBot": 0, "CounterBot": 0,}
+    Duo_strats = strats.copy()
+
 
     RockMoves_CountBot = 0
     PaperMoves_CountBot = 0
@@ -883,7 +937,10 @@ def Player2ListUpdate(Player):
                 Player2BotLabel.config(text="Does not lose\n\nOnly works against\nHumanBot!")
 
             case "EvaluationBot":
-                Player2BotLabel.config(text=Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem"))
+                Player2BotLabel.config(text="Has a multitude\nof different bots\nit can choose from,\nand picks the\none that it\nbelieves has the\nhighest odds\nof winning based\noff a scoring\nsystem")
+
+            case "PredictionBotWIP":
+                Player2BotLabel.config(text="this bot will parse\nthe enemy moves\ninto a string and\ntry to find a\npattern to their\nplaystyle.\n\nAfter a pattern has been\nfound, it will attempt\nto generate a\npattern that will win\nagainst the enemy\nplayer every single\nmove.")
 
     else:
         match Player:
@@ -907,21 +964,22 @@ def GenerateHeatmap():
         CanvasHeight = TextSpread+i*TextSpread
     CanvasWidth = 100
 
-    canvas_1_manage = Canvas(HeatMapFrame,height=CanvasWidth,width=CanvasHeight)
-    canvas_1_manage.grid(row = 0, column = 1)
-    canvas_2_manage = Canvas(HeatMapFrame,width=CanvasWidth,height=CanvasHeight)
-    canvas_2_manage.grid(row = 1, column = 0)
+    P1ListCanvas = Canvas(HeatMapFrame,height=CanvasWidth,width=CanvasHeight)
+    P1ListCanvas.grid(row = 0, column = 1)
+    P2ListCanvas = Canvas(HeatMapFrame,width=CanvasWidth,height=CanvasHeight)
+    P2ListCanvas.grid(row = 1, column = 0)
 
     for i in range(0,len(TournamentBotList)):
-        canvas_2_manage.create_text(CanvasWidth,1+TextSpread/2+i*TextSpread, text = TournamentBotList[i], anchor = "e")
+        P2ListCanvas.create_text(CanvasWidth,1+TextSpread/2+i*TextSpread, text = TournamentBotList[i], anchor = "e")
 
     for i in range(0,len(TournamentBotList)):
-        canvas_1_manage.create_text(TextSpread/2+i*TextSpread, CanvasWidth, text = TournamentBotList[i], angle = 90, anchor = "w")
+        P1ListCanvas.create_text(TextSpread/2+i*TextSpread, CanvasWidth, text = TournamentBotList[i], angle = 90, anchor = "w")
 
 
     for y in range(0,len(TournamentBotList)):
         globals()[f"CanvasFrame{y}"] = Frame(MatchingFrame)
         globals()[f"CanvasFrame{y}"].grid(row=y,column=2)
+        root.update()
         for x in range(0,len(TournamentBotList)):
             globals()[f"MatchCanvas{x}_{y}"] = Canvas(globals()[f"CanvasFrame{y}"],width=20,height=20,background="#757575")
             globals()[f"MatchCanvas{x}_{y}"].grid(column=x,row=1)
@@ -968,6 +1026,12 @@ def StartTournament():
     #Where the tourneying happens, just a big loop that changes 
     #the players to match them up and logs all the matches, then 
     #it sends these logs to other functions.
+
+    for y in range(0,len(TournamentBotList)):   #Resets color of heatmap to default
+        for x in range(0,len(TournamentBotList)):
+            globals()[f"MatchCanvas{x}_{y}"].config(bg="#757575")
+    root.update()
+
     global Player1_Tournament
     global Player2_Tournament
     global TournamentLog
@@ -986,13 +1050,13 @@ def StartTournament():
             P2Value.set(TournamentBotList[x])
             ResetLogs()
             for i in range(0,int(RoundsPerFight.get())):    #This is where the matches get played and where the logs are being made
-                if Reset == True and i % int(ResetLogsPerFight.get()) == 0:
+                if Reset == True and i % int(ResetLogsPerFight.get()) == 0: #This is where the logs are reset, if i is divisble by the Reset logs per fight number, the logs are reset, could be improved
                     ResetLogs()
                 MatchMaker()
             Points = MatchesToPoints(TournamentLog)         
             P1TournamentScore += Points[0]
             globals()[f"MatchCanvas{x}_{y}"].config(background=HeatmapColorHandler(Points[1][0],Points[1][1],Points[1][2]))     #Here the heatmap is updated
-            Hovertip(globals()[f"MatchCanvas{x}_{y}"],text=("P1 wins: "+str(Wins)+"\nP2 wins: "+str(Loses)+"\nDraws: "+str(Draws)))
+            Hovertip(globals()[f"MatchCanvas{x}_{y}"],text=("P1 winrate: "+str(round(100*(Wins/int(RoundsPerFight.get())),3))+"%"+"\nP2 winrate: "+str(round(100*(Loses/int(RoundsPerFight.get())),3))+"%"+"\nDraw rate: "+str(round(100*(Draws/int(RoundsPerFight.get())),3))+"%"))
             TournamentLog = []  #Tournamentlog gets reset
             root.update()
         Result.append((P1TournamentScore,P1Value.get()))    #Results are made and the bots are sorted with their score
@@ -1057,8 +1121,6 @@ def LaunchStandardMode_Buttons():
     AutoFight_InfoFrame.pack(side=TOP)
     ResetButton = Button(InfoFrame,text="Reset logs",command=ResetLogs)
     ResetButton.pack(side=LEFT)
-    Trademark = Button(InfoFrame,text=TrademarkText,command=RerollTrademark,bd=0)
-    Trademark.pack(side=RIGHT)
 
 def LaunchTournamentMode_Buttons():
     StartButton = Button(InputFramesHolder,text="Start\ntournament!",command=StartTournament,padx=35,pady=10)
@@ -1068,8 +1130,9 @@ def RerollTrademark():
     #Is for easteregg, clicking the Trademark 
     #(the funny text in the right corner) will reroll the text
     global BotInfo
-    BotInfo = True
-    Player2ListUpdate(P2Value.get())
+    if CurrentMode == Mode.Standard:
+        BotInfo = True
+        Player2ListUpdate(P2Value.get())
 
     global TrademarkText
     NewTrademarkText = funnytexts[random.randint(0,len(funnytexts)-1)]
@@ -1087,6 +1150,8 @@ def RerollTrademark():
 
 
 MainFrame.pack()
+Trademark = Button(root,text=TrademarkText,command=RerollTrademark,bd=0)
+Trademark.pack(side=RIGHT)
 LaunchStandardMode()
 Player1ListUpdate(P1Value.get())
 
