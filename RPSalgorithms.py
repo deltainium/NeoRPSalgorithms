@@ -281,7 +281,7 @@ BotList = [     #Add list of bots here.
     "RockBot",
     "PaperBot",
     "ScissorsBot",
-    #Counter intuitive bots
+    #Counterintuitive bots
     "CopyBot",
     "GenerousBot",
     #good bots
@@ -304,16 +304,17 @@ TournamentBotList = BotList.copy()
 TournamentBotList.remove("HumanBot")
 TournamentBotList.remove("PredictionBotWIP")
 
+Duo = False
 def Introspection(BotName):
     #You must know yourself to know your enemy. Figures out who the bot 
     #is and returns what player (number) his opponent is 
     #(Why his opponent? Because thats what we actually want to know)
-    global Duo
 
     #Duo checks if both players are the same, if they are the same 
     #it will return 0 and turn a boolean true so that when the next 
     #bot does introspection, who will be the copy, they will be 
-    #returned 1 instantly
+    #returned 1 immediately
+    global Duo
     if Duo == True:
         return 0
 
@@ -326,7 +327,7 @@ def Introspection(BotName):
         return 0
     else:
         print("!! Error: Bot is having an existencial crisis! Who is bot??? !!")
-        print("P1: "+P1Value.get()," | P2: "+P2Value.get()," | BotName: "+BotName," | Duo: ",Duo)  #Debugging, incase någe går kalt med introspection, så hjelpe det å vita dette.
+        print("P1: "+P1Value.get()," | P2: "+P2Value.get()," | BotName recieved: "+BotName," | Duo value: ",Duo)
 
 #region | Player (bot) Algorithms
 def RandomBot():
@@ -388,7 +389,6 @@ def CopyBot(RoundLog,Enemy):    #will play the enemies last move.
 
 def BeatLastBot(RoundLog,Enemy):
     #Will Play the winning move against the enemies last move.
-
     if Enemy is None:
         Enemy = Introspection("BeatLastBot")
 
@@ -576,9 +576,9 @@ def PredictionBot(RoundLog,Enemy):
     print(StringLog)
 
     #0. Will play a pattern at start, 1. rock, 2. paper, 3. scissors then repeat until a enemy pattern is found
+    #!. this pattern must try to predict what the enemy will play in response to losing. Using metastrategies can help here.
     #1. If the same move has been played three times, play the winning move until loss, if a draw or loss is detected, never attempt again
     #2. If the enemy move plays the same pattern twice generate a pattern that will win against the enemy pattern, 
-    #   this pattern must try to predict what the enemy will play in response to losing. Using metastrategies can help here.
 
     return RandomBot()
 #endregion
@@ -606,7 +606,6 @@ def CheckWinner(P1,P2,PlayerLog):
             P2Score.config(text=("Wins: "+str(P2ScoreValue)))
             TieScore.config(text=("Ties: "+str(TieScoreValue)))
         
-
     #Checks for tie, this is done first because it is cheap to check and if 
     #the result is a tie then we wont need to check any win conditions, 
     #saving us some computer processesing 
@@ -797,7 +796,7 @@ def MatchMaker():
             global IsAutoFighting
             IsAutoFighting = True
 
-            for _ in range(0,int(AutoFightRange.get())):
+            for _ in range(int(AutoFightRange.get())-1):
                 MatchMaker()
             IsAutoFighting = False
             AutoFight.set(1)
@@ -951,7 +950,6 @@ def Player2ListUpdate(Player):
 
 def GenerateHeatmap():
     TextSpread = 24
-
     # sideways text and grid of canvases
     #Frame shenanigans
     HeatMapFrame = Frame(MainFrame)
@@ -959,9 +957,7 @@ def GenerateHeatmap():
     MatchingFrame = Frame(HeatMapFrame)
     MatchingFrame.grid(row=1,column=1,sticky="nw")
 
-
-    for i in range(0,len(TournamentBotList)):
-        CanvasHeight = TextSpread+i*TextSpread
+    CanvasHeight = TextSpread+len(TournamentBotList)*TextSpread
     CanvasWidth = 100
 
     P1ListCanvas = Canvas(HeatMapFrame,height=CanvasWidth,width=CanvasHeight)
@@ -989,7 +985,7 @@ def GenerateHeatmap():
 def HeatmapColorHandler(P1,P2,draws):
     #The heatmap is only affected to a certain degree, it cannot be amplified, 
     #since it shows the win rate of player 1 and 2, points do not matter, 
-    #only winning or losing does.
+    #only winning or losing does. (or tieing)
     r = P1 * 255
     b = P2 * 255
     g = draws * 255
@@ -1063,12 +1059,11 @@ def StartTournament():
         LeaderboardHandler(Result)  #Once the first loop is finished, the results are sendt to the leaderboard handler and the tournament is finished
 
 
-def takeFirst(elem):
-    return elem[0]
 
 def MatchesToPoints(Matches):   
     #Translates the matches of the games 
     #into points and wins and returns them
+    #Returns them in two forms
     global Wins
     global Loses
     global Draws
@@ -1095,6 +1090,8 @@ def MatchesToPoints(Matches):
 
 def LeaderboardHandler(Result):     
     #Handles sorting the results and displaying the leaderboard
+    def takeFirst(elem):
+        return elem[0]
     global InnerLeaderboardFrame
     for widget in InnerLeaderboardFrame.winfo_children():
         widget.destroy()
@@ -1128,7 +1125,8 @@ def LaunchTournamentMode_Buttons():
 
 def RerollTrademark():
     #Is for easteregg, clicking the Trademark 
-    #(the funny text in the right corner) will reroll the text
+    #(the funny text in the right corner) 
+    #will reroll the text
     global BotInfo
     if CurrentMode == Mode.Standard:
         BotInfo = True
